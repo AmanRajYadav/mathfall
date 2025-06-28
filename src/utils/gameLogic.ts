@@ -30,7 +30,8 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication', di
       break;
   }
   
-  const speed = 0.5 + (difficulty * 0.3) + (Math.random() * 0.5);
+  // Reduced speed by 60% (multiply by 0.4)
+  const speed = (0.5 + (difficulty * 0.3) + (Math.random() * 0.5)) * 0.4;
   const textWidth = text.length * 12; // Approximate character width
   const maxX = 800 - textWidth - 20;
   
