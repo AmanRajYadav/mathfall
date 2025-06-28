@@ -196,6 +196,7 @@ const MathFall: React.FC = () => {
         newLives -= problemsAtBottom.length;
         newProblemsHandled += problemsAtBottom.length;
         playSound('loseLife');
+        console.log(`Problems at bottom: ${problemsAtBottom.length}, New handled: ${newProblemsHandled}, Total: ${currentState.totalProblemsInWave}`);
       }
 
       // Update particles
@@ -219,13 +220,18 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion
-      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
+      // Fixed wave completion logic - check if all problems are handled and no problems remain
+      const allProblemsHandled = newProblemsHandled >= currentState.totalProblemsInWave;
+      const noProblemsRemaining = remainingProblems.length === 0;
+      
+      console.log(`Wave ${currentState.wave}: Handled ${newProblemsHandled}/${currentState.totalProblemsInWave}, Remaining: ${remainingProblems.length}`);
+      
+      if (allProblemsHandled && noProblemsRemaining) {
         playSound('waveComplete');
         updateGameState(state => ({
           ...state,
           gameStatus: 'waveComplete',
-          problems: remainingProblems,
+          problems: [],
           particles: updatedParticles,
           lives: newLives,
           problemsHandled: newProblemsHandled
