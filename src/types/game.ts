@@ -15,11 +15,22 @@ export interface Particle {
   vy: number;
   life: number;
   maxLife: number;
+  color?: string;
 }
 
 export interface Wave {
   problems: MathProblem[];
   totalProblems: number;
+}
+
+export interface GameStatistics {
+  currentStreak: number;
+  bestStreak: number;
+  totalQuestionsAnswered: number;
+  correctAnswers: number;
+  accuracy: number;
+  highScore: number;
+  timePlayedSeconds: number;
 }
 
 export interface GameState {
@@ -30,7 +41,12 @@ export interface GameState {
   particles: Particle[];
   currentInput: string;
   targetProblem: MathProblem | null;
-  gameStatus: 'menu' | 'playing' | 'waveComplete' | 'gameOver';
+  gameStatus: 'menu' | 'playing' | 'waveComplete' | 'gameOver' | 'paused' | 'statistics' | 'settings';
   totalProblemsInWave: number;
   problemsHandled: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  statistics: GameStatistics;
+  gameStartTime: number;
 }
+
+export type Difficulty = 'easy' | 'medium' | 'hard';

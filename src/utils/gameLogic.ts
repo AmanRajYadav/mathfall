@@ -1,38 +1,51 @@
 
-import { MathProblem, Wave } from '../types/game';
+import { MathProblem, Wave, Difficulty } from '../types/game';
 
 let problemIdCounter = 0;
 
-const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'complex', difficulty: number): MathProblem => {
+const getDifficultyMultipliers = (difficulty: Difficulty) => {
+  switch (difficulty) {
+    case 'easy':
+      return { speedMultiplier: 0.3, complexityMultiplier: 0.5 };
+    case 'medium':
+      return { speedMultiplier: 0.6, complexityMultiplier: 1.0 };
+    case 'hard':
+      return { speedMultiplier: 1.0, complexityMultiplier: 1.5 };
+  }
+};
+
+const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'complex', waveNumber: number, difficulty: Difficulty): MathProblem => {
   let text = '';
   let answer = 0;
+  const { speedMultiplier, complexityMultiplier } = getDifficultyMultipliers(difficulty);
   
   switch (type) {
     case 'addition':
-      // Mix of simple and harder addition
-      const useHard = difficulty > 2 && Math.random() < 0.3;
-      if (useHard) {
-        const a1 = Math.floor(Math.random() * 45) + 15; // 15-59
-        const b1 = Math.floor(Math.random() * 35) + 10; // 10-44
+      const useHardAdd = waveNumber > 2 && Math.random() < (0.3 * complexityMultiplier);
+      if (useHardAdd) {
+        const a1 = Math.floor(Math.random() * 45) + 15;
+        const b1 = Math.floor(Math.random() * 35) + 10;
         text = `${a1} + ${b1}`;
         answer = a1 + b1;
       } else {
-        const a1 = Math.floor(Math.random() * 9) + 1;
-        const b1 = Math.floor(Math.random() * 9) + 1;
+        const maxNum = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 15 : 20;
+        const a1 = Math.floor(Math.random() * maxNum) + 1;
+        const b1 = Math.floor(Math.random() * maxNum) + 1;
         text = `${a1} + ${b1}`;
         answer = a1 + b1;
       }
       break;
       
     case 'subtraction':
-      const useHardSub = difficulty > 2 && Math.random() < 0.3;
+      const useHardSub = waveNumber > 2 && Math.random() < (0.3 * complexityMultiplier);
       if (useHardSub) {
-        const a2 = Math.floor(Math.random() * 80) + 20; // 20-99
-        const b2 = Math.floor(Math.random() * (a2 - 10)) + 5; // Ensure positive result
+        const a2 = Math.floor(Math.random() * 80) + 20;
+        const b2 = Math.floor(Math.random() * (a2 - 10)) + 5;
         text = `${a2} - ${b2}`;
         answer = a2 - b2;
       } else {
-        const a2 = Math.floor(Math.random() * 20) + 6;
+        const maxNum = difficulty === 'easy' ? 15 : difficulty === 'medium' ? 25 : 30;
+        const a2 = Math.floor(Math.random() * maxNum) + 6;
         const b2 = Math.floor(Math.random() * (a2 - 1)) + 1;
         text = `${a2} - ${b2}`;
         answer = a2 - b2;
@@ -40,59 +53,55 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       break;
       
     case 'multiplication':
-      const useHardMult = difficulty > 3 && Math.random() < 0.4;
+      const useHardMult = waveNumber > 3 && Math.random() < (0.4 * complexityMultiplier);
       if (useHardMult) {
-        // Harder multiplication like 15×7, 13×8, etc.
-        const a3 = Math.floor(Math.random() * 8) + 12; // 12-19
-        const b3 = Math.floor(Math.random() * 9) + 2; // 2-10
+        const a3 = Math.floor(Math.random() * 8) + 12;
+        const b3 = Math.floor(Math.random() * 9) + 2;
         text = `${a3} × ${b3}`;
         answer = a3 * b3;
       } else {
-        const a3 = Math.floor(Math.random() * 11) + 2;
-        const b3 = Math.floor(Math.random() * 11) + 2;
+        const maxNum = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 12 : 15;
+        const a3 = Math.floor(Math.random() * maxNum) + 2;
+        const b3 = Math.floor(Math.random() * (difficulty === 'easy' ? 9 : 11)) + 2;
         text = `${a3} × ${b3}`;
         answer = a3 * b3;
       }
       break;
       
     case 'division':
-      // Simple division that results in whole numbers
-      const quotient = Math.floor(Math.random() * 12) + 2; // 2-13
-      const divisor = Math.floor(Math.random() * 8) + 2; // 2-9
+      const maxQuotient = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 12 : 15;
+      const quotient = Math.floor(Math.random() * maxQuotient) + 2;
+      const divisor = Math.floor(Math.random() * 8) + 2;
       const dividend = quotient * divisor;
       text = `${dividend} ÷ ${divisor}`;
       answer = quotient;
       break;
       
     case 'complex':
-      // More complex problems for higher waves
       const complexType = Math.floor(Math.random() * 3);
       if (complexType === 0) {
-        // Two-step addition/subtraction like (15 + 8) - 7
         const a = Math.floor(Math.random() * 15) + 10;
         const b = Math.floor(Math.random() * 10) + 5;
         const c = Math.floor(Math.random() * 8) + 3;
         text = `(${a} + ${b}) - ${c}`;
         answer = (a + b) - c;
       } else if (complexType === 1) {
-        // Mixed operations like 12 + 6 × 2
         const a = Math.floor(Math.random() * 15) + 5;
         const b = Math.floor(Math.random() * 8) + 2;
         const c = Math.floor(Math.random() * 6) + 2;
         text = `${a} + ${b} × ${c}`;
-        answer = a + (b * c); // Order of operations
+        answer = a + (b * c);
       } else {
-        // Square numbers like 7²
-        const base = Math.floor(Math.random() * 8) + 3; // 3-10
+        const base = Math.floor(Math.random() * 8) + 3;
         text = `${base}²`;
         answer = base * base;
       }
       break;
   }
   
-  // Reduced speed by 60% (multiply by 0.4)
-  const speed = (0.5 + (difficulty * 0.3) + (Math.random() * 0.5)) * 0.4;
-  const textWidth = text.length * 12; // Approximate character width
+  const baseSpeed = 0.5 + (waveNumber * 0.3) + (Math.random() * 0.5);
+  const speed = baseSpeed * 0.4 * speedMultiplier;
+  const textWidth = text.length * 12;
   const maxX = 800 - textWidth - 20;
   
   return {
@@ -105,81 +114,76 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   };
 };
 
-export const generateWave = (waveNumber: number): Wave => {
+export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave => {
   const problems: MathProblem[] = [];
   let totalProblems = 0;
   
+  const baseProblems = difficulty === 'easy' ? 8 : difficulty === 'medium' ? 12 : 15;
+  
   switch (waveNumber) {
     case 1:
-      // Wave 1: Simple Addition
-      totalProblems = 12;
+      totalProblems = baseProblems;
       for (let i = 0; i < totalProblems; i++) {
-        const problem = generateProblem('addition', 1);
-        problem.y = -50 - (i * 120); // More spacing
+        const problem = generateProblem('addition', waveNumber, difficulty);
+        problem.y = -50 - (i * 120);
         problems.push(problem);
       }
       break;
       
     case 2:
-      // Wave 2: Addition + Subtraction
-      totalProblems = 15;
+      totalProblems = baseProblems + 3;
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.6 ? 'addition' : 'subtraction';
-        const problem = generateProblem(type, 2);
+        const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 100);
         problems.push(problem);
       }
       break;
       
     case 3:
-      // Wave 3: Multiplication + Some Division
-      totalProblems = 18;
+      totalProblems = baseProblems + 6;
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.8 ? 'multiplication' : 'division';
-        const problem = generateProblem(type, 3);
+        const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 90);
         problems.push(problem);
       }
       break;
       
     case 4:
-      // Wave 4: Mixed Operations
-      totalProblems = 20;
+      totalProblems = baseProblems + 8;
       for (let i = 0; i < totalProblems; i++) {
         const types: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = 
           ['addition', 'subtraction', 'multiplication', 'division'];
         const type = types[Math.floor(Math.random() * types.length)];
-        const problem = generateProblem(type, 4);
+        const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 80);
         problems.push(problem);
       }
       break;
       
     case 5:
-      // Wave 5: Complex Problems Start
-      totalProblems = 22;
+      totalProblems = baseProblems + 10;
       for (let i = 0; i < totalProblems; i++) {
         const useComplex = Math.random() < 0.4;
         const type = useComplex ? 'complex' : 
           (['addition', 'subtraction', 'multiplication', 'division'] as const)[Math.floor(Math.random() * 4)];
-        const problem = generateProblem(type, 5);
+        const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 75);
         problems.push(problem);
       }
       break;
       
     default:
-      // Dynamic waves - increase complexity and speed
-      totalProblems = Math.min(25, 15 + (waveNumber * 2));
+      totalProblems = Math.min(baseProblems + 15, baseProblems + (waveNumber * 2));
       const types: ('addition' | 'subtraction' | 'multiplication' | 'division' | 'complex')[] = 
         ['addition', 'subtraction', 'multiplication', 'division', 'complex'];
       
       for (let i = 0; i < totalProblems; i++) {
-        // Higher chance of complex problems in later waves
         const complexChance = Math.min(0.6, (waveNumber - 4) * 0.15);
         const useComplex = Math.random() < complexChance;
         const type = useComplex ? 'complex' : types[Math.floor(Math.random() * 4)];
-        const problem = generateProblem(type, waveNumber);
+        const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * Math.max(50, 100 - waveNumber * 3));
         problems.push(problem);
       }
