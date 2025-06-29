@@ -6,11 +6,11 @@ let problemIdCounter = 0;
 const getDifficultyMultipliers = (difficulty: Difficulty) => {
   switch (difficulty) {
     case 'easy':
-      return { speedMultiplier: 0.3, complexityMultiplier: 0.5 };
+      return { speedMultiplier: 1.0, complexityMultiplier: 0.5, problemCount: 1.0 };
     case 'medium':
-      return { speedMultiplier: 0.6, complexityMultiplier: 1.0 };
+      return { speedMultiplier: 1.3, complexityMultiplier: 1.0, problemCount: 1.2 };
     case 'hard':
-      return { speedMultiplier: 1.0, complexityMultiplier: 1.5 };
+      return { speedMultiplier: 1.6, complexityMultiplier: 1.5, problemCount: 1.5 };
   }
 };
 
@@ -99,8 +99,9 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       break;
   }
   
-  const baseSpeed = 0.5 + (waveNumber * 0.3) + (Math.random() * 0.5);
-  const speed = baseSpeed * 0.4 * speedMultiplier;
+  // Increased base speed by 15% and added wave progression
+  const baseSpeed = (0.8 + (waveNumber * 0.4) + (Math.random() * 0.6)) * 1.15;
+  const speed = baseSpeed * speedMultiplier;
   const textWidth = text.length * 12;
   const maxX = 800 - textWidth - 20;
   
@@ -118,64 +119,65 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
   const problems: MathProblem[] = [];
   let totalProblems = 0;
   
-  const baseProblems = difficulty === 'easy' ? 8 : difficulty === 'medium' ? 12 : 15;
+  const { problemCount } = getDifficultyMultipliers(difficulty);
+  const baseProblems = Math.floor((difficulty === 'easy' ? 12 : difficulty === 'medium' ? 16 : 20) * problemCount);
   
   switch (waveNumber) {
     case 1:
       totalProblems = baseProblems;
       for (let i = 0; i < totalProblems; i++) {
         const problem = generateProblem('addition', waveNumber, difficulty);
-        problem.y = -50 - (i * 120);
+        problem.y = -50 - (i * 80); // Reduced spacing for more frequent problems
         problems.push(problem);
       }
       break;
       
     case 2:
-      totalProblems = baseProblems + 3;
+      totalProblems = baseProblems + 4;
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.6 ? 'addition' : 'subtraction';
-        const problem = generateProblem(type, waveNumber, difficulty);
-        problem.y = -50 - (i * 100);
-        problems.push(problem);
-      }
-      break;
-      
-    case 3:
-      totalProblems = baseProblems + 6;
-      for (let i = 0; i < totalProblems; i++) {
-        const type = Math.random() < 0.8 ? 'multiplication' : 'division';
-        const problem = generateProblem(type, waveNumber, difficulty);
-        problem.y = -50 - (i * 90);
-        problems.push(problem);
-      }
-      break;
-      
-    case 4:
-      totalProblems = baseProblems + 8;
-      for (let i = 0; i < totalProblems; i++) {
-        const types: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = 
-          ['addition', 'subtraction', 'multiplication', 'division'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const problem = generateProblem(type, waveNumber, difficulty);
-        problem.y = -50 - (i * 80);
-        problems.push(problem);
-      }
-      break;
-      
-    case 5:
-      totalProblems = baseProblems + 10;
-      for (let i = 0; i < totalProblems; i++) {
-        const useComplex = Math.random() < 0.4;
-        const type = useComplex ? 'complex' : 
-          (['addition', 'subtraction', 'multiplication', 'division'] as const)[Math.floor(Math.random() * 4)];
         const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 75);
         problems.push(problem);
       }
       break;
       
+    case 3:
+      totalProblems = baseProblems + 8;
+      for (let i = 0; i < totalProblems; i++) {
+        const type = Math.random() < 0.8 ? 'multiplication' : 'division';
+        const problem = generateProblem(type, waveNumber, difficulty);
+        problem.y = -50 - (i * 70);
+        problems.push(problem);
+      }
+      break;
+      
+    case 4:
+      totalProblems = baseProblems + 10;
+      for (let i = 0; i < totalProblems; i++) {
+        const types: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = 
+          ['addition', 'subtraction', 'multiplication', 'division'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const problem = generateProblem(type, waveNumber, difficulty);
+        problem.y = -50 - (i * 65);
+        problems.push(problem);
+      }
+      break;
+      
+    case 5:
+      totalProblems = baseProblems + 12;
+      for (let i = 0; i < totalProblems; i++) {
+        const useComplex = Math.random() < 0.4;
+        const type = useComplex ? 'complex' : 
+          (['addition', 'subtraction', 'multiplication', 'division'] as const)[Math.floor(Math.random() * 4)];
+        const problem = generateProblem(type, waveNumber, difficulty);
+        problem.y = -50 - (i * 60);
+        problems.push(problem);
+      }
+      break;
+      
     default:
-      totalProblems = Math.min(baseProblems + 15, baseProblems + (waveNumber * 2));
+      totalProblems = Math.min(baseProblems + 20, baseProblems + (waveNumber * 3));
       const types: ('addition' | 'subtraction' | 'multiplication' | 'division' | 'complex')[] = 
         ['addition', 'subtraction', 'multiplication', 'division', 'complex'];
       
@@ -184,7 +186,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
         const useComplex = Math.random() < complexChance;
         const type = useComplex ? 'complex' : types[Math.floor(Math.random() * 4)];
         const problem = generateProblem(type, waveNumber, difficulty);
-        problem.y = -50 - (i * Math.max(50, 100 - waveNumber * 3));
+        problem.y = -50 - (i * Math.max(45, 80 - waveNumber * 2));
         problems.push(problem);
       }
       break;

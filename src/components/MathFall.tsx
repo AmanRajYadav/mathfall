@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, MathProblem, Particle, Difficulty } from '../types/game';
 import { generateWave, checkAnswer } from '../utils/gameLogic';
@@ -34,11 +33,11 @@ const MathFall: React.FC = () => {
   // Initialize star field
   useEffect(() => {
     const stars = [];
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 200; i++) {
       stars.push({
         x: Math.random() * 800,
         y: Math.random() * 600,
-        speed: Math.random() * 0.5 + 0.1
+        speed: Math.random() * 0.8 + 0.2
       });
     }
     setStarField(stars);
@@ -79,6 +78,8 @@ const MathFall: React.FC = () => {
     const currentWave = gameStateRef.current.wave + 1;
     const wave = generateWave(currentWave, gameStateRef.current.difficulty);
     
+    console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems`);
+    
     updateGameState(state => ({
       ...state,
       wave: currentWave,
@@ -89,13 +90,6 @@ const MathFall: React.FC = () => {
       totalProblemsInWave: wave.totalProblems,
       problemsHandled: 0,
       gameStatus: 'playing'
-    }));
-  }, [updateGameState]);
-
-  const pauseGame = useCallback(() => {
-    updateGameState(state => ({
-      ...state,
-      gameStatus: state.gameStatus === 'paused' ? 'playing' : 'paused'
     }));
   }, [updateGameState]);
 
@@ -110,17 +104,17 @@ const MathFall: React.FC = () => {
 
   const createExplosion = useCallback((x: number, y: number, isStreak = false) => {
     const particles: Particle[] = [];
-    const particleCount = isStreak ? 25 : 15;
-    const colors = isStreak ? ['#ffff00', '#ffa500', '#ff6b6b'] : ['#ffffff'];
+    const particleCount = isStreak ? 30 : 20;
+    const colors = isStreak ? ['#ffff00', '#ffa500', '#ff6b6b', '#00ff00'] : ['#ffffff', '#66fcf1'];
     
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x,
         y,
-        vx: (Math.random() - 0.5) * (isStreak ? 12 : 8),
-        vy: (Math.random() - 0.5) * (isStreak ? 12 : 8),
-        life: isStreak ? 40 : 30,
-        maxLife: isStreak ? 40 : 30,
+        vx: (Math.random() - 0.5) * (isStreak ? 15 : 10),
+        vy: (Math.random() - 0.5) * (isStreak ? 15 : 10),
+        life: isStreak ? 50 : 35,
+        maxLife: isStreak ? 50 : 35,
         color: colors[Math.floor(Math.random() * colors.length)]
       });
     }
@@ -134,19 +128,9 @@ const MathFall: React.FC = () => {
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     const currentState = gameStateRef.current;
     
-    if (currentState.gameStatus === 'paused' && event.key.toLowerCase() === 'p') {
-      pauseGame();
-      return;
-    }
-    
     if (currentState.gameStatus !== 'playing') return;
 
     const key = event.key;
-    
-    if (key.toLowerCase() === 'p') {
-      pauseGame();
-      return;
-    }
     
     if (key >= '0' && key <= '9') {
       const newInput = currentState.currentInput + key;
@@ -210,7 +194,7 @@ const MathFall: React.FC = () => {
         targetProblem
       }));
     }
-  }, [findTargetProblem, createExplosion, updateGameState, pauseGame]);
+  }, [findTargetProblem, createExplosion, updateGameState]);
 
   // Keyboard event listener
   useEffect(() => {
@@ -222,11 +206,6 @@ const MathFall: React.FC = () => {
   useEffect(() => {
     const gameLoop = () => {
       const currentState = gameStateRef.current;
-      
-      if (currentState.gameStatus === 'paused') {
-        animationRef.current = requestAnimationFrame(gameLoop);
-        return;
-      }
       
       if (currentState.gameStatus !== 'playing') {
         animationRef.current = requestAnimationFrame(gameLoop);
@@ -240,10 +219,13 @@ const MathFall: React.FC = () => {
         ...(star.y > 600 && { y: 0, x: Math.random() * 800 })
       })));
 
-      // Update problems
+      // Update problems with speed increase throughout wave
+      const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
+      const speedBoost = 1 + (waveProgress * 0.3); // 30% speed increase as wave progresses
+      
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,
-        y: problem.y + problem.speed
+        y: problem.y + (problem.speed * speedBoost)
       }));
 
       // Check for problems that hit the bottom
@@ -258,7 +240,7 @@ const MathFall: React.FC = () => {
         newLives -= problemsAtBottom.length;
         newProblemsHandled += problemsAtBottom.length;
         newStats = updateStatistics(currentState.statistics, {
-          currentStreak: 0, // Break streak when missing problems
+          currentStreak: 0,
           totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + problemsAtBottom.length
         });
         playSound('loseLife');
@@ -292,8 +274,9 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // FIXED: Wave completion logic - check if all problems are handled
+      // Fixed wave completion logic - check if all problems are handled AND no problems remain on screen
       if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
+        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
         playSound('waveComplete');
         updateGameState(state => ({
           ...state,
@@ -307,7 +290,7 @@ const MathFall: React.FC = () => {
 
         setTimeout(() => {
           startNextWave();
-        }, 2000);
+        }, 1500);
         return;
       }
 
@@ -333,7 +316,7 @@ const MathFall: React.FC = () => {
     };
   }, [updateGameState, startNextWave]);
 
-  // Canvas rendering
+  // Canvas rendering with modern visual effects
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -341,33 +324,46 @@ const MathFall: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas with gradient background
+    // Modern gradient background
     const gradient = ctx.createLinearGradient(0, 0, 0, 600);
-    gradient.addColorStop(0, '#0f0f23');
-    gradient.addColorStop(1, '#1a1a2e');
+    gradient.addColorStop(0, '#0a0a1a');
+    gradient.addColorStop(0.5, '#1a1a2e');
+    gradient.addColorStop(1, '#16213e');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 800, 600);
 
-    // Draw stars with twinkling effect
+    // Enhanced stars with glow effect
     starField.forEach((star, index) => {
-      const twinkle = Math.sin(Date.now() * 0.01 + index) * 0.5 + 0.5;
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + twinkle * 0.7})`;
+      const twinkle = Math.sin(Date.now() * 0.005 + index) * 0.5 + 0.5;
+      const alpha = 0.4 + twinkle * 0.6;
+      
+      // Glow effect
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.fillRect(star.x, star.y, 2, 2);
+      ctx.shadowBlur = 0;
     });
 
     if (gameState.gameStatus === 'menu') {
-      return; // Menu is rendered by React component
+      return;
     }
 
     if (gameState.gameStatus === 'gameOver') {
-      // Draw game over screen
-      ctx.font = '48px "Courier New"';
+      // Modern game over screen
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(0, 0, 800, 600);
+      
+      ctx.font = '48px "Arial Black"';
       ctx.fillStyle = '#ff6b6b';
       ctx.textAlign = 'center';
+      ctx.shadowColor = '#ff6b6b';
+      ctx.shadowBlur = 20;
       ctx.fillText('GAME OVER', 400, 250);
       
-      ctx.font = '24px "Courier New"';
+      ctx.font = '24px Arial';
       ctx.fillStyle = '#66fcf1';
+      ctx.shadowBlur = 10;
       ctx.fillText(`Final Score: ${gameState.score}`, 400, 300);
       if (gameState.score === gameState.statistics.highScore) {
         ctx.fillStyle = '#ffff00';
@@ -375,37 +371,31 @@ const MathFall: React.FC = () => {
       }
       ctx.fillStyle = '#66fcf1';
       ctx.fillText('Press SPACE to restart', 400, 380);
+      ctx.shadowBlur = 0;
       
       return;
     }
 
     if (gameState.gameStatus === 'waveComplete') {
-      // Draw wave complete screen
-      ctx.font = '36px "Courier New"';
-      ctx.fillStyle = '#66fcf1';
-      ctx.textAlign = 'center';
-      ctx.fillText(`WAVE ${gameState.wave} COMPLETE!`, 400, 300);
-      
-      return;
-    }
-
-    if (gameState.gameStatus === 'paused') {
-      // Draw pause overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      // Modern wave complete screen
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
       ctx.fillRect(0, 0, 800, 600);
       
-      ctx.font = '48px "Courier New"';
+      ctx.font = '36px "Arial Black"';
       ctx.fillStyle = '#66fcf1';
       ctx.textAlign = 'center';
-      ctx.fillText('PAUSED', 400, 280);
-      ctx.font = '24px "Courier New"';
-      ctx.fillText('Press P to resume', 400, 340);
+      ctx.shadowColor = '#66fcf1';
+      ctx.shadowBlur = 15;
+      ctx.fillText(`WAVE ${gameState.wave} COMPLETE!`, 400, 300);
+      ctx.shadowBlur = 0;
       
       return;
     }
 
-    // Draw player ship (enhanced)
+    // Enhanced player ship
     ctx.fillStyle = '#66fcf1';
+    ctx.shadowColor = '#66fcf1';
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.moveTo(400, 570);
     ctx.lineTo(380, 590);
@@ -413,35 +403,45 @@ const MathFall: React.FC = () => {
     ctx.closePath();
     ctx.fill();
 
-    // Ship details
     ctx.fillRect(375, 585, 10, 5);
     ctx.fillRect(415, 585, 10, 5);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(398, 575, 4, 8);
+    ctx.shadowBlur = 0;
 
-    // Draw problems with enhanced styling
-    ctx.font = '20px "Courier New"';
+    // Enhanced problems with modern styling
+    ctx.font = '20px "Arial Black"';
     gameState.problems.forEach(problem => {
       const isTarget = problem === gameState.targetProblem;
-      ctx.fillStyle = isTarget ? '#ffff00' : '#66fcf1';
       
       if (isTarget) {
-        // Draw highlight background for targeted problem
+        // Glowing target effect
         const textWidth = ctx.measureText(problem.text).width;
-        ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
-        ctx.fillRect(problem.x - 5, problem.y - 25, textWidth + 10, 30);
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+        ctx.fillRect(problem.x - 8, problem.y - 30, textWidth + 16, 35);
+        
+        ctx.shadowColor = '#ffff00';
+        ctx.shadowBlur = 15;
         ctx.fillStyle = '#ffff00';
+      } else {
+        ctx.fillStyle = '#66fcf1';
+        ctx.shadowColor = '#66fcf1';
+        ctx.shadowBlur = 5;
       }
       
       ctx.fillText(problem.text, problem.x, problem.y);
+      ctx.shadowBlur = 0;
     });
 
-    // Draw particles with colors
+    // Enhanced particles with colors
     gameState.particles.forEach(particle => {
       const alpha = particle.life / particle.maxLife;
       const color = particle.color || '#ffffff';
       ctx.fillStyle = `${color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
-      ctx.fillRect(particle.x, particle.y, 3, 3);
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 3;
+      ctx.fillRect(particle.x, particle.y, 4, 4);
+      ctx.shadowBlur = 0;
     });
 
   }, [gameState, starField]);
@@ -495,8 +495,8 @@ const MathFall: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 relative">
-      <div className="border-4 border-cyan-400 rounded-lg overflow-hidden shadow-2xl shadow-cyan-400/50 relative">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative">
+      <div className="border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 relative backdrop-blur-sm">
         <canvas
           ref={canvasRef}
           width={800}
@@ -505,9 +505,9 @@ const MathFall: React.FC = () => {
           style={{ imageRendering: 'pixelated' }}
         />
         
-        {/* React UI Overlays */}
+        {/* React UI Overlays with modern design */}
         {gameState.gameStatus === 'menu' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-90">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md">
             <GameMenu
               onStartGame={startGame}
               onShowStatistics={handleShowStatistics}
@@ -518,7 +518,7 @@ const MathFall: React.FC = () => {
         )}
         
         {gameState.gameStatus === 'statistics' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-95 p-8 overflow-y-auto">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md p-8 overflow-y-auto">
             <StatisticsPanel
               statistics={gameState.statistics}
               onBack={handleBackToMenu}
@@ -528,13 +528,13 @@ const MathFall: React.FC = () => {
         )}
         
         {gameState.gameStatus === 'settings' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-95 p-8">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md p-8">
             <SettingsPanel onBack={handleBackToMenu} />
           </div>
         )}
         
         {gameState.gameStatus === 'playing' && (
-          <GameHUD gameState={gameState} onPause={pauseGame} />
+          <GameHUD gameState={gameState} onPause={() => {}} />
         )}
       </div>
     </div>
