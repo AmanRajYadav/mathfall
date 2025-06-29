@@ -534,7 +534,7 @@ const MathFall: React.FC = () => {
         )}
         
         {gameState.gameStatus === 'playing' && (
-          <GameHUD gameState={gameState} onPause={() => {}} />
+          <GameHUD gameState={gameState} />
         )}
       </div>
     </div>
