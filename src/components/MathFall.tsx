@@ -79,6 +79,7 @@ const MathFall: React.FC = () => {
     const wave = generateWave(currentWave, gameStateRef.current.difficulty);
     
     console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems`);
+    console.log(`Wave ${currentWave} problems:`, wave.problems.map(p => ({ text: p.text, y: p.y, speed: p.speed })));
     
     updateGameState(state => ({
       ...state,
@@ -221,12 +222,20 @@ const MathFall: React.FC = () => {
 
       // Update problems with reduced speed increase throughout wave
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
-      const speedBoost = 1 + (waveProgress * 0.1); // Reduced from 0.3 to 0.1 (10% instead of 30%)
+      const speedBoost = 1 + (waveProgress * 0.05); // Reduced from 0.1 to 0.05 (5% instead of 10%)
       
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,
         y: problem.y + (problem.speed * speedBoost)
       }));
+
+      // Debug logging for Wave 2
+      if (currentState.wave === 2 && currentState.problems.length > 0) {
+        const visibleProblems = updatedProblems.filter(p => p.y > -100 && p.y < 650);
+        if (visibleProblems.length > 0) {
+          console.log(`Wave 2 - Visible problems: ${visibleProblems.length}, positions:`, visibleProblems.map(p => ({ text: p.text, y: Math.round(p.y) })));
+        }
+      }
 
       // Check for problems that hit the bottom
       const problemsAtBottom = updatedProblems.filter(p => p.y > 550);

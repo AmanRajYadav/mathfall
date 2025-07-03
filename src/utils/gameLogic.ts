@@ -1,3 +1,4 @@
+
 import { MathProblem, Wave, Difficulty } from '../types/game';
 
 let problemIdCounter = 0;
@@ -121,23 +122,28 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
   const { problemCount } = getDifficultyMultipliers(difficulty);
   const baseProblems = Math.floor((difficulty === 'easy' ? 12 : difficulty === 'medium' ? 16 : 20) * problemCount);
   
+  console.log(`Generating Wave ${waveNumber} with base problems: ${baseProblems}`);
+  
   switch (waveNumber) {
     case 1:
       totalProblems = baseProblems;
       for (let i = 0; i < totalProblems; i++) {
         const problem = generateProblem('addition', waveNumber, difficulty);
-        problem.y = -50 - (i * 80); // Reduced spacing for more frequent problems
+        problem.y = -50 - (i * 80);
         problems.push(problem);
+        console.log(`Wave 1 - Generated problem ${i + 1}: ${problem.text} at y=${problem.y}`);
       }
       break;
       
     case 2:
       totalProblems = baseProblems + 4;
+      console.log(`Wave 2 - Creating ${totalProblems} problems`);
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.6 ? 'addition' : 'subtraction';
         const problem = generateProblem(type, waveNumber, difficulty);
         problem.y = -50 - (i * 75);
         problems.push(problem);
+        console.log(`Wave 2 - Generated problem ${i + 1}: ${problem.text} (${type}) at y=${problem.y}, speed=${problem.speed}`);
       }
       break;
       
@@ -190,6 +196,8 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
       }
       break;
   }
+  
+  console.log(`Wave ${waveNumber} generated with ${problems.length} problems, total expected: ${totalProblems}`);
   
   return { problems, totalProblems };
 };
