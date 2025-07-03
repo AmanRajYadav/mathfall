@@ -98,8 +98,8 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       break;
   }
   
-  // Reduced base speed by an additional 40% for more manageable gameplay
-  const baseSpeed = (0.5 + (waveNumber * 0.15) + (Math.random() * 0.3)) * 0.6; // 40% reduction
+  // Reduced base speed by an additional 40% for even more manageable gameplay
+  const baseSpeed = (0.5 + (waveNumber * 0.15) + (Math.random() * 0.3)) * 0.6 * 0.6; // Additional 40% reduction
   const speed = baseSpeed * speedMultiplier;
   const textWidth = text.length * 12;
   const maxX = 800 - textWidth - 20;
