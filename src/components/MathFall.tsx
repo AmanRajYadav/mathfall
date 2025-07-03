@@ -222,20 +222,12 @@ const MathFall: React.FC = () => {
 
       // Update problems with reduced speed increase throughout wave
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
-      const speedBoost = 1 + (waveProgress * 0.05); // Reduced from 0.1 to 0.05 (5% instead of 10%)
+      const speedBoost = 1 + (waveProgress * 0.05);
       
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,
         y: problem.y + (problem.speed * speedBoost)
       }));
-
-      // Debug logging for Wave 2
-      if (currentState.wave === 2 && currentState.problems.length > 0) {
-        const visibleProblems = updatedProblems.filter(p => p.y > -100 && p.y < 650);
-        if (visibleProblems.length > 0) {
-          console.log(`Wave 2 - Visible problems: ${visibleProblems.length}, positions:`, visibleProblems.map(p => ({ text: p.text, y: Math.round(p.y) })));
-        }
-      }
 
       // Check for problems that hit the bottom
       const problemsAtBottom = updatedProblems.filter(p => p.y > 550);
@@ -253,6 +245,7 @@ const MathFall: React.FC = () => {
           totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + problemsAtBottom.length
         });
         playSound('loseLife');
+        console.log(`${problemsAtBottom.length} problems hit bottom. New handled count: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
       }
 
       // Update particles
@@ -283,8 +276,10 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Fixed wave completion logic - check if all problems are handled AND no problems remain on screen
-      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
+      // Fixed wave completion logic - simplified condition
+      console.log(`Wave ${currentState.wave} status: handled=${newProblemsHandled}, total=${currentState.totalProblemsInWave}, remaining=${remainingProblems.length}`);
+      
+      if (newProblemsHandled >= currentState.totalProblemsInWave) {
         console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
         playSound('waveComplete');
         updateGameState(state => ({

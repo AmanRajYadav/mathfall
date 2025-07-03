@@ -17,15 +17,15 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
 
   return (
     <>
-      {/* Modern Top HUD with glassmorphism effect */}
+      {/* Reduced height top HUD */}
       <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl">
+        <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl">
           <div className="flex justify-between items-center">
             <div className="text-white font-mono">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1">
+              <div className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1">
                 {gameState.score.toLocaleString()}
               </div>
-              <div className="text-sm text-slate-300">
+              <div className="text-xs text-slate-300">
                 Streak: <span className={`font-bold ${gameState.statistics.currentStreak > 5 ? 'text-yellow-400' : 'text-emerald-400'}`}>
                   {gameState.statistics.currentStreak}
                 </span>
@@ -33,15 +33,15 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
             </div>
             
             <div className="text-center">
-              <div className="text-white font-mono text-3xl font-bold mb-1">Wave {gameState.wave}</div>
-              <div className="text-sm text-slate-300 uppercase tracking-wider font-semibold px-3 py-1 bg-white/10 rounded-full">
+              <div className="text-white font-mono text-xl font-bold mb-1">Wave {gameState.wave}</div>
+              <div className="text-xs text-slate-300 uppercase tracking-wider font-semibold px-2 py-1 bg-white/10 rounded-full">
                 {gameState.difficulty}
               </div>
             </div>
             
             <div className="text-right text-white font-mono">
-              <div className="text-2xl font-bold">{formatTime(currentTime)}</div>
-              <div className="text-sm text-slate-300">
+              <div className="text-lg font-bold">{formatTime(currentTime)}</div>
+              <div className="text-xs text-slate-300">
                 <span className="text-emerald-400 font-bold">{gameState.statistics.accuracy}%</span> Accuracy
               </div>
             </div>
