@@ -219,9 +219,9 @@ const MathFall: React.FC = () => {
         ...(star.y > 600 && { y: 0, x: Math.random() * 800 })
       })));
 
-      // Update problems with speed increase throughout wave
+      // Update problems with reduced speed increase throughout wave
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
-      const speedBoost = 1 + (waveProgress * 0.3); // 30% speed increase as wave progresses
+      const speedBoost = 1 + (waveProgress * 0.1); // Reduced from 0.3 to 0.1 (10% instead of 30%)
       
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,

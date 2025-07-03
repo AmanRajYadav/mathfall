@@ -1,4 +1,3 @@
-
 import { MathProblem, Wave, Difficulty } from '../types/game';
 
 let problemIdCounter = 0;
@@ -99,8 +98,8 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       break;
   }
   
-  // Increased base speed by 15% and added wave progression
-  const baseSpeed = (0.8 + (waveNumber * 0.4) + (Math.random() * 0.6)) * 1.15;
+  // Reduced base speed significantly for more manageable gameplay
+  const baseSpeed = 0.5 + (waveNumber * 0.15) + (Math.random() * 0.3);
   const speed = baseSpeed * speedMultiplier;
   const textWidth = text.length * 12;
   const maxX = 800 - textWidth - 20;
