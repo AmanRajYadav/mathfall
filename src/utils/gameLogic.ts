@@ -131,7 +131,8 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
   
   console.log(`Generating Wave ${waveNumber} with ${totalProblems} problems (difficulty: ${difficulty})`);
   
-  const spacing = Math.max(60, 120 - (waveNumber * 5)); // Better spacing between problems
+  // Reduced spacing by 50% - from 60-120 range to 30-60 range
+  const spacing = Math.max(30, 60 - (waveNumber * 2.5));
   
   switch (waveNumber) {
     case 1:
