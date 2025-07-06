@@ -17,85 +17,81 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
 
   return (
     <>
-      {/* Top HUD with modern glassmorphism */}
+      {/* Top HUD - transparent without boxes */}
       <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl shadow-cyan-500/10">
-          <div className="flex justify-between items-center">
-            <div className="text-white font-mono">
-              <div className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1">
-                {gameState.score.toLocaleString()}
-              </div>
-              <div className="text-xs text-slate-300 flex items-center gap-2">
-                <span>Streak:</span>
-                <span className={`font-bold px-2 py-1 rounded-full text-xs ${
-                  gameState.statistics.currentStreak > 5 
-                    ? 'text-yellow-400 bg-yellow-400/10' 
-                    : 'text-emerald-400 bg-emerald-400/10'
-                }`}>
-                  {gameState.statistics.currentStreak}
-                </span>
-              </div>
+        <div className="flex justify-between items-center px-4">
+          <div className="text-white font-mono">
+            <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1 drop-shadow-lg">
+              {gameState.score.toLocaleString()}
             </div>
-            
-            <div className="text-center">
-              <div className="text-white font-mono text-xl font-bold mb-1 flex items-center gap-2">
-                <span className="text-2xl">🌊</span>
-                Wave {gameState.wave}
-              </div>
-              <div className="text-xs text-slate-300 uppercase tracking-wider font-semibold px-3 py-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full border border-white/10">
-                {gameState.difficulty}
-              </div>
+            <div className="text-sm text-white flex items-center gap-2 drop-shadow-md">
+              <span>Streak:</span>
+              <span className={`font-bold px-3 py-1 rounded-full text-sm ${
+                gameState.statistics.currentStreak > 5 
+                  ? 'text-yellow-300 bg-yellow-400/20 border border-yellow-400/30' 
+                  : 'text-emerald-300 bg-emerald-400/20 border border-emerald-400/30'
+              }`}>
+                {gameState.statistics.currentStreak}
+              </span>
             </div>
-            
-            <div className="text-right text-white font-mono">
-              <div className="text-lg font-bold flex items-center gap-2">
-                <span className="text-xl">⏱️</span>
-                {formatTime(currentTime)}
-              </div>
-              <div className="text-xs text-slate-300">
-                <span className="text-emerald-400 font-bold">{gameState.statistics.accuracy}%</span> Accuracy
-              </div>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-white font-mono text-2xl font-bold mb-1 flex items-center gap-3 drop-shadow-lg">
+              <span className="text-3xl">🌊</span>
+              Wave {gameState.wave}
+            </div>
+            <div className="text-sm text-white uppercase tracking-wider font-semibold px-4 py-2 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full border border-white/20 backdrop-blur-sm">
+              {gameState.difficulty}
+            </div>
+          </div>
+          
+          <div className="text-right text-white font-mono">
+            <div className="text-xl font-bold flex items-center gap-3 drop-shadow-lg">
+              <span className="text-2xl">⏱️</span>
+              {formatTime(currentTime)}
+            </div>
+            <div className="text-sm text-white drop-shadow-md">
+              <span className="text-emerald-300 font-bold">{gameState.statistics.accuracy}%</span> Accuracy
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom HUD with enhanced styling */}
+      {/* Bottom HUD - transparent without boxes */}
       <div className="absolute bottom-4 left-4 right-4 z-10">
-        <div className="bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl shadow-blue-500/10">
-          <div className="flex justify-between items-center">
-            <div className="text-white font-mono flex-1">
-              <div className="text-2xl mb-3 flex items-center gap-3">
-                <span className="text-slate-400">Input:</span>
-                <div className="bg-gradient-to-r from-slate-800 to-slate-700 border border-slate-600 px-4 py-2 rounded-xl font-bold text-yellow-400 min-w-[120px] text-center shadow-inner">
-                  {gameState.currentInput || '_'}
-                </div>
+        <div className="flex justify-between items-center px-6">
+          <div className="text-white font-mono flex-1">
+            <div className="text-2xl mb-3 flex items-center gap-4">
+              <span className="text-white drop-shadow-lg">Input:</span>
+              <div className="bg-slate-800/70 border border-slate-500/50 px-6 py-3 rounded-xl font-bold text-yellow-300 min-w-[140px] text-center shadow-lg backdrop-blur-sm">
+                {gameState.currentInput || '_'}
               </div>
-              {gameState.targetProblem && (
-                <div className="text-base text-slate-300 flex items-center gap-2">
-                  <span className="text-cyan-400">→</span>
-                  <span className="text-cyan-400 font-semibold bg-cyan-400/10 px-3 py-1 rounded-lg">
-                    {gameState.targetProblem.text}
-                  </span>
-                </div>
-              )}
             </div>
-            
-            <div className="flex items-center gap-4 ml-8">
-              <span className="text-white text-lg font-mono font-semibold flex items-center gap-2">
-                <span className="text-2xl">❤️</span>
-                Lives:
-              </span>
-              <div className="flex gap-2">
-                {Array.from({ length: gameState.lives }, (_, i) => (
-                  <div key={i} className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 transform hover:scale-110 transition-all duration-200 border-2 border-white/20">
-                      <div className="text-white text-lg">♥</div>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-400/50 to-pink-500/50 rounded-full blur-sm -z-10"></div>
-                  </div>
-                ))}
+            {gameState.targetProblem && (
+              <div className="text-lg text-white flex items-center gap-3 drop-shadow-md">
+                <span className="text-cyan-300">→</span>
+                <span className="text-cyan-300 font-semibold bg-cyan-400/20 px-4 py-2 rounded-lg border border-cyan-400/30 backdrop-blur-sm">
+                  {gameState.targetProblem.text}
+                </span>
               </div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4 ml-8">
+            <span className="text-white text-xl font-mono font-semibold flex items-center gap-3 drop-shadow-lg">
+              <span className="text-3xl">❤️</span>
+              Lives:
+            </span>
+            <div className="flex gap-2">
+              {Array.from({ length: gameState.lives }, (_, i) => (
+                <div key={i} className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/40 transform hover:scale-110 transition-all duration-200 border-2 border-white/30">
+                    <div className="text-white text-xl">♥</div>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-400/60 to-pink-500/60 rounded-full blur-md -z-10"></div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -14,71 +14,226 @@ const getDifficultyMultipliers = (difficulty: Difficulty) => {
   }
 };
 
-const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'complex', waveNumber: number, difficulty: Difficulty, canvasWidth: number): MathProblem => {
+const generateFraction = (difficulty: Difficulty) => {
+  if (difficulty === 'easy') {
+    const numerator = Math.floor(Math.random() * 7) + 1;
+    const denominator = Math.floor(Math.random() * 8) + 2;
+    if (numerator >= denominator) return generateFraction(difficulty);
+    return { numerator, denominator, decimal: numerator / denominator };
+  } else if (difficulty === 'medium') {
+    const numerator = Math.floor(Math.random() * 15) + 1;
+    const denominator = Math.floor(Math.random() * 12) + 2;
+    return { numerator, denominator, decimal: numerator / denominator };
+  } else {
+    const numerator = Math.floor(Math.random() * 25) + 1;
+    const denominator = Math.floor(Math.random() * 20) + 2;
+    return { numerator, denominator, decimal: numerator / denominator };
+  }
+};
+
+const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'exponents' | 'roots' | 'fractions' | 'decimals' | 'complex', waveNumber: number, difficulty: Difficulty, canvasWidth: number): MathProblem => {
   let text = '';
   let answer = 0;
   const { speedMultiplier, complexityMultiplier } = getDifficultyMultipliers(difficulty);
   
   switch (type) {
     case 'addition':
-      const useHardAdd = waveNumber > 2 && Math.random() < (0.3 * complexityMultiplier);
-      if (useHardAdd) {
-        const a1 = Math.floor(Math.random() * 45) + 15;
-        const b1 = Math.floor(Math.random() * 35) + 10;
-        text = `${a1} + ${b1}`;
-        answer = a1 + b1;
+      if (difficulty === 'easy') {
+        const a = Math.floor(Math.random() * 20) + 1;
+        const b = Math.floor(Math.random() * 20) + 1;
+        text = `${a} + ${b}`;
+        answer = a + b;
+      } else if (difficulty === 'medium') {
+        const a = Math.floor(Math.random() * 50) + 10;
+        const b = Math.floor(Math.random() * 50) + 10;
+        text = `${a} + ${b}`;
+        answer = a + b;
       } else {
-        const maxNum = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 15 : 20;
-        const a1 = Math.floor(Math.random() * maxNum) + 1;
-        const b1 = Math.floor(Math.random() * maxNum) + 1;
-        text = `${a1} + ${b1}`;
-        answer = a1 + b1;
+        const a = Math.floor(Math.random() * 100) + 25;
+        const b = Math.floor(Math.random() * 100) + 25;
+        text = `${a} + ${b}`;
+        answer = a + b;
       }
       break;
       
     case 'subtraction':
-      const useHardSub = waveNumber > 2 && Math.random() < (0.3 * complexityMultiplier);
-      if (useHardSub) {
-        const a2 = Math.floor(Math.random() * 80) + 20;
-        const b2 = Math.floor(Math.random() * (a2 - 10)) + 5;
-        text = `${a2} - ${b2}`;
-        answer = a2 - b2;
+      if (difficulty === 'easy') {
+        const a = Math.floor(Math.random() * 30) + 10;
+        const b = Math.floor(Math.random() * (a - 5)) + 1;
+        text = `${a} - ${b}`;
+        answer = a - b;
+      } else if (difficulty === 'medium') {
+        const a = Math.floor(Math.random() * 80) + 20;
+        const b = Math.floor(Math.random() * (a - 10)) + 5;
+        text = `${a} - ${b}`;
+        answer = a - b;
       } else {
-        const maxNum = difficulty === 'easy' ? 15 : difficulty === 'medium' ? 25 : 30;
-        const a2 = Math.floor(Math.random() * maxNum) + 6;
-        const b2 = Math.floor(Math.random() * (a2 - 1)) + 1;
-        text = `${a2} - ${b2}`;
-        answer = a2 - b2;
+        const a = Math.floor(Math.random() * 150) + 50;
+        const b = Math.floor(Math.random() * (a - 20)) + 10;
+        text = `${a} - ${b}`;
+        answer = a - b;
       }
       break;
       
     case 'multiplication':
-      const useHardMult = waveNumber > 3 && Math.random() < (0.4 * complexityMultiplier);
-      if (useHardMult) {
-        const a3 = Math.floor(Math.random() * 8) + 12;
-        const b3 = Math.floor(Math.random() * 9) + 2;
-        text = `${a3} × ${b3}`;
-        answer = a3 * b3;
+      if (difficulty === 'easy') {
+        const a = Math.floor(Math.random() * 9) + 2;
+        const b = Math.floor(Math.random() * 9) + 2;
+        text = `${a} × ${b}`;
+        answer = a * b;
+      } else if (difficulty === 'medium') {
+        const a = Math.floor(Math.random() * 12) + 3;
+        const b = Math.floor(Math.random() * 12) + 3;
+        text = `${a} × ${b}`;
+        answer = a * b;
       } else {
-        const maxNum = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 12 : 15;
-        const a3 = Math.floor(Math.random() * maxNum) + 2;
-        const b3 = Math.floor(Math.random() * (difficulty === 'easy' ? 9 : 11)) + 2;
-        text = `${a3} × ${b3}`;
-        answer = a3 * b3;
+        const a = Math.floor(Math.random() * 20) + 5;
+        const b = Math.floor(Math.random() * 15) + 3;
+        text = `${a} × ${b}`;
+        answer = a * b;
       }
       break;
       
     case 'division':
-      const maxQuotient = difficulty === 'easy' ? 9 : difficulty === 'medium' ? 12 : 15;
-      const quotient = Math.floor(Math.random() * maxQuotient) + 2;
-      const divisor = Math.floor(Math.random() * 8) + 2;
-      const dividend = quotient * divisor;
-      text = `${dividend} ÷ ${divisor}`;
-      answer = quotient;
+      if (difficulty === 'easy') {
+        const quotient = Math.floor(Math.random() * 12) + 2;
+        const divisor = Math.floor(Math.random() * 8) + 2;
+        const dividend = quotient * divisor;
+        text = `${dividend} ÷ ${divisor}`;
+        answer = quotient;
+      } else if (difficulty === 'medium') {
+        const quotient = Math.floor(Math.random() * 20) + 3;
+        const divisor = Math.floor(Math.random() * 12) + 2;
+        const dividend = quotient * divisor;
+        text = `${dividend} ÷ ${divisor}`;
+        answer = quotient;
+      } else {
+        const quotient = Math.floor(Math.random() * 35) + 5;
+        const divisor = Math.floor(Math.random() * 18) + 3;
+        const dividend = quotient * divisor;
+        text = `${dividend} ÷ ${divisor}`;
+        answer = quotient;
+      }
+      break;
+      
+    case 'exponents':
+      if (difficulty === 'easy') {
+        const base = Math.floor(Math.random() * 7) + 2;
+        const exp = 2;
+        text = `${base}²`;
+        answer = Math.pow(base, exp);
+      } else if (difficulty === 'medium') {
+        const base = Math.floor(Math.random() * 8) + 2;
+        const exp = Math.random() < 0.7 ? 2 : 3;
+        text = exp === 2 ? `${base}²` : `${base}³`;
+        answer = Math.pow(base, exp);
+      } else {
+        const base = Math.floor(Math.random() * 12) + 2;
+        const exp = Math.floor(Math.random() * 3) + 2;
+        text = exp === 2 ? `${base}²` : exp === 3 ? `${base}³` : `${base}⁴`;
+        answer = Math.pow(base, exp);
+      }
+      break;
+      
+    case 'roots':
+      if (difficulty === 'easy') {
+        const perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100];
+        const square = perfectSquares[Math.floor(Math.random() * perfectSquares.length)];
+        text = `√${square}`;
+        answer = Math.sqrt(square);
+      } else if (difficulty === 'medium') {
+        const perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169];
+        const square = perfectSquares[Math.floor(Math.random() * perfectSquares.length)];
+        text = `√${square}`;
+        answer = Math.sqrt(square);
+      } else {
+        const perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
+        const perfectCubes = [8, 27, 64, 125];
+        if (Math.random() < 0.7) {
+          const square = perfectSquares[Math.floor(Math.random() * perfectSquares.length)];
+          text = `√${square}`;
+          answer = Math.sqrt(square);
+        } else {
+          const cube = perfectCubes[Math.floor(Math.random() * perfectCubes.length)];
+          text = `∛${cube}`;
+          answer = Math.round(Math.pow(cube, 1/3));
+        }
+      }
+      break;
+      
+    case 'fractions':
+      const frac1 = generateFraction(difficulty);
+      const frac2 = generateFraction(difficulty);
+      
+      if (Math.random() < 0.5) {
+        // Addition
+        text = `${frac1.numerator}/${frac1.denominator} + ${frac2.numerator}/${frac2.denominator}`;
+        const commonDenom = frac1.denominator * frac2.denominator;
+        const num1 = frac1.numerator * frac2.denominator;
+        const num2 = frac2.numerator * frac1.denominator;
+        const resultNum = num1 + num2;
+        
+        // Simplify fraction
+        const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+        const divisor = gcd(resultNum, commonDenom);
+        answer = Math.round((resultNum / divisor) * 100 + (commonDenom / divisor) * 0.01);
+      } else {
+        // Convert to decimal
+        text = `${frac1.numerator}/${frac1.denominator}`;
+        answer = Math.round(frac1.decimal * 100) / 100;
+      }
+      break;
+      
+    case 'decimals':
+      if (difficulty === 'easy') {
+        const a = (Math.floor(Math.random() * 50) + 10) / 10;
+        const b = (Math.floor(Math.random() * 50) + 10) / 10;
+        if (Math.random() < 0.5) {
+          text = `${a} + ${b}`;
+          answer = Math.round((a + b) * 10) / 10;
+        } else {
+          text = `${Math.max(a, b)} - ${Math.min(a, b)}`;
+          answer = Math.round((Math.max(a, b) - Math.min(a, b)) * 10) / 10;
+        }
+      } else if (difficulty === 'medium') {
+        const a = (Math.floor(Math.random() * 100) + 20) / 100;
+        const b = (Math.floor(Math.random() * 100) + 20) / 100;
+        const operation = Math.floor(Math.random() * 3);
+        if (operation === 0) {
+          text = `${a} + ${b}`;
+          answer = Math.round((a + b) * 100) / 100;
+        } else if (operation === 1) {
+          text = `${Math.max(a, b)} - ${Math.min(a, b)}`;
+          answer = Math.round((Math.max(a, b) - Math.min(a, b)) * 100) / 100;
+        } else {
+          const c = Math.floor(Math.random() * 10) + 2;
+          text = `${a} × ${c}`;
+          answer = Math.round((a * c) * 100) / 100;
+        }
+      } else {
+        const a = (Math.floor(Math.random() * 200) + 50) / 100;
+        const b = (Math.floor(Math.random() * 200) + 50) / 100;
+        const operation = Math.floor(Math.random() * 4);
+        if (operation === 0) {
+          text = `${a} + ${b}`;
+          answer = Math.round((a + b) * 100) / 100;
+        } else if (operation === 1) {
+          text = `${Math.max(a, b)} - ${Math.min(a, b)}`;
+          answer = Math.round((Math.max(a, b) - Math.min(a, b)) * 100) / 100;
+        } else if (operation === 2) {
+          const c = Math.floor(Math.random() * 15) + 2;
+          text = `${a} × ${c}`;
+          answer = Math.round((a * c) * 100) / 100;
+        } else {
+          const c = Math.floor(Math.random() * 8) + 2;
+          text = `${a * c} ÷ ${c}`;
+          answer = Math.round(a * 100) / 100;
+        }
+      }
       break;
       
     case 'complex':
-      const complexType = Math.floor(Math.random() * 3);
+      const complexType = Math.floor(Math.random() * 4);
       if (complexType === 0) {
         const a = Math.floor(Math.random() * 15) + 10;
         const b = Math.floor(Math.random() * 10) + 5;
@@ -91,16 +246,22 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
         const c = Math.floor(Math.random() * 6) + 2;
         text = `${a} + ${b} × ${c}`;
         answer = a + (b * c);
+      } else if (complexType === 2) {
+        const a = Math.floor(Math.random() * 12) + 4;
+        const b = Math.floor(Math.random() * 8) + 2;
+        const c = Math.floor(Math.random() * 6) + 2;
+        text = `${a} × ${b} - ${c}`;
+        answer = (a * b) - c;
       } else {
         const base = Math.floor(Math.random() * 8) + 3;
-        text = `${base}²`;
-        answer = base * base;
+        const add = Math.floor(Math.random() * 10) + 5;
+        text = `${base}² + ${add}`;
+        answer = (base * base) + add;
       }
       break;
   }
   
-  // Much slower base speed for better gameplay
-  const baseSpeed = (0.3 + (waveNumber * 0.1) + (Math.random() * 0.2)) * 0.4;
+  const baseSpeed = (0.3 + (waveNumber * 0.08) + (Math.random() * 0.15)) * 0.6;
   const speed = baseSpeed * speedMultiplier;
   const textWidth = text.length * 12;
   const maxX = canvasWidth - textWidth - 20;
@@ -119,7 +280,6 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
   const problems: MathProblem[] = [];
   const { problemCount } = getDifficultyMultipliers(difficulty);
   
-  // Reduced problem counts for better pacing
   const baseCounts = {
     easy: { base: 8, increment: 2 },
     medium: { base: 10, increment: 3 },
@@ -131,58 +291,27 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
   
   console.log(`Generating Wave ${waveNumber} with ${totalProblems} problems (difficulty: ${difficulty})`);
   
-  // Reduced spacing by 50% - from 30-60 range to 15-30 range for fullscreen
-  const spacing = Math.max(15, 30 - (waveNumber * 1.25));
+  const spacing = Math.max(8, 15 - (waveNumber * 0.8));
   
-  switch (waveNumber) {
-    case 1:
-      for (let i = 0; i < totalProblems; i++) {
-        const problem = generateProblem('addition', waveNumber, difficulty, canvasWidth);
-        problem.y = -50 - (i * spacing);
-        problems.push(problem);
-      }
-      break;
-      
-    case 2:
-      for (let i = 0; i < totalProblems; i++) {
-        const type = Math.random() < 0.6 ? 'addition' : 'subtraction';
-        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
-        problem.y = -50 - (i * spacing);
-        problems.push(problem);
-      }
-      break;
-      
-    case 3:
-      for (let i = 0; i < totalProblems; i++) {
-        const type = Math.random() < 0.7 ? 'multiplication' : 'division';
-        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
-        problem.y = -50 - (i * spacing);
-        problems.push(problem);
-      }
-      break;
-      
-    case 4:
-      for (let i = 0; i < totalProblems; i++) {
-        const types: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = 
-          ['addition', 'subtraction', 'multiplication', 'division'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
-        problem.y = -50 - (i * spacing);
-        problems.push(problem);
-      }
-      break;
-      
-    default:
-      for (let i = 0; i < totalProblems; i++) {
-        const complexChance = Math.min(0.4, (waveNumber - 4) * 0.1);
-        const useComplex = Math.random() < complexChance;
-        const type = useComplex ? 'complex' : 
-          (['addition', 'subtraction', 'multiplication', 'division'] as const)[Math.floor(Math.random() * 4)];
-        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
-        problem.y = -50 - (i * spacing);
-        problems.push(problem);
-      }
-      break;
+  // Problem type distribution based on wave
+  const getProblemsForWave = (wave: number): Array<'addition' | 'subtraction' | 'multiplication' | 'division' | 'exponents' | 'roots' | 'fractions' | 'decimals' | 'complex'> => {
+    if (wave === 1) return ['addition', 'subtraction'];
+    if (wave === 2) return ['addition', 'subtraction', 'multiplication'];
+    if (wave === 3) return ['addition', 'subtraction', 'multiplication', 'division'];
+    if (wave === 4) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents'];
+    if (wave === 5) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots'];
+    if (wave === 6) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals'];
+    if (wave === 7) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions'];
+    return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions', 'complex'];
+  };
+  
+  const availableTypes = getProblemsForWave(waveNumber);
+  
+  for (let i = 0; i < totalProblems; i++) {
+    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+    const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
+    problem.y = -50 - (i * spacing);
+    problems.push(problem);
   }
   
   console.log(`Wave ${waveNumber} generated successfully: ${problems.length} problems created`);
@@ -191,5 +320,13 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
 };
 
 export const checkAnswer = (problem: MathProblem, input: string): boolean => {
-  return problem.answer.toString() === input;
+  const inputNum = parseFloat(input);
+  const answerNum = typeof problem.answer === 'number' ? problem.answer : parseFloat(problem.answer.toString());
+  
+  // Handle decimal precision
+  if (Math.abs(answerNum - Math.round(answerNum)) > 0.001) {
+    return Math.abs(inputNum - answerNum) < 0.01;
+  }
+  
+  return Math.abs(inputNum - answerNum) < 0.001;
 };
