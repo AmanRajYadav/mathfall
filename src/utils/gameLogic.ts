@@ -14,7 +14,7 @@ const getDifficultyMultipliers = (difficulty: Difficulty) => {
   }
 };
 
-const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'complex', waveNumber: number, difficulty: Difficulty): MathProblem => {
+const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'complex', waveNumber: number, difficulty: Difficulty, canvasWidth: number): MathProblem => {
   let text = '';
   let answer = 0;
   const { speedMultiplier, complexityMultiplier } = getDifficultyMultipliers(difficulty);
@@ -103,7 +103,7 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   const baseSpeed = (0.3 + (waveNumber * 0.1) + (Math.random() * 0.2)) * 0.4;
   const speed = baseSpeed * speedMultiplier;
   const textWidth = text.length * 12;
-  const maxX = 800 - textWidth - 20;
+  const maxX = canvasWidth - textWidth - 20;
   
   return {
     id: `problem_${problemIdCounter++}`,
@@ -115,7 +115,7 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   };
 };
 
-export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave => {
+export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasWidth: number = 800): Wave => {
   const problems: MathProblem[] = [];
   const { problemCount } = getDifficultyMultipliers(difficulty);
   
@@ -131,13 +131,13 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
   
   console.log(`Generating Wave ${waveNumber} with ${totalProblems} problems (difficulty: ${difficulty})`);
   
-  // Reduced spacing by 50% - from 60-120 range to 30-60 range
-  const spacing = Math.max(30, 60 - (waveNumber * 2.5));
+  // Reduced spacing by 50% - from 30-60 range to 15-30 range for fullscreen
+  const spacing = Math.max(15, 30 - (waveNumber * 1.25));
   
   switch (waveNumber) {
     case 1:
       for (let i = 0; i < totalProblems; i++) {
-        const problem = generateProblem('addition', waveNumber, difficulty);
+        const problem = generateProblem('addition', waveNumber, difficulty, canvasWidth);
         problem.y = -50 - (i * spacing);
         problems.push(problem);
       }
@@ -146,7 +146,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
     case 2:
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.6 ? 'addition' : 'subtraction';
-        const problem = generateProblem(type, waveNumber, difficulty);
+        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
         problem.y = -50 - (i * spacing);
         problems.push(problem);
       }
@@ -155,7 +155,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
     case 3:
       for (let i = 0; i < totalProblems; i++) {
         const type = Math.random() < 0.7 ? 'multiplication' : 'division';
-        const problem = generateProblem(type, waveNumber, difficulty);
+        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
         problem.y = -50 - (i * spacing);
         problems.push(problem);
       }
@@ -166,7 +166,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
         const types: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = 
           ['addition', 'subtraction', 'multiplication', 'division'];
         const type = types[Math.floor(Math.random() * types.length)];
-        const problem = generateProblem(type, waveNumber, difficulty);
+        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
         problem.y = -50 - (i * spacing);
         problems.push(problem);
       }
@@ -178,7 +178,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty): Wave =
         const useComplex = Math.random() < complexChance;
         const type = useComplex ? 'complex' : 
           (['addition', 'subtraction', 'multiplication', 'division'] as const)[Math.floor(Math.random() * 4)];
-        const problem = generateProblem(type, waveNumber, difficulty);
+        const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
         problem.y = -50 - (i * spacing);
         problems.push(problem);
       }

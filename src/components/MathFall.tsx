@@ -7,10 +7,14 @@ import GameMenu from './GameMenu';
 import GameHUD from './GameHUD';
 import StatisticsPanel from './StatisticsPanel';
 import SettingsPanel from './SettingsPanel';
+import GameCanvas from './GameCanvas';
 
 const MathFall: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
+  const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 800 });
+  
   const gameStateRef = useRef<GameState>({
     score: 0,
     lives: 3,
@@ -30,18 +34,32 @@ const MathFall: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(gameStateRef.current);
   const [starField, setStarField] = useState<Array<{x: number, y: number, speed: number}>>([]);
 
-  // Initialize star field
+  // Handle window resize for fullscreen canvas
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const newWidth = Math.min(window.innerWidth - 40, 1400);
+      const newHeight = Math.min(window.innerHeight - 40, 900);
+      setCanvasSize({ width: newWidth, height: newHeight });
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  // Initialize star field based on canvas size
   useEffect(() => {
     const stars = [];
-    for (let i = 0; i < 200; i++) {
+    const starCount = Math.floor((canvasSize.width * canvasSize.height) / 4000);
+    for (let i = 0; i < starCount; i++) {
       stars.push({
-        x: Math.random() * 800,
-        y: Math.random() * 600,
+        x: Math.random() * canvasSize.width,
+        y: Math.random() * canvasSize.height,
         speed: Math.random() * 0.8 + 0.2
       });
     }
     setStarField(stars);
-  }, []);
+  }, [canvasSize]);
 
   const updateGameState = useCallback((updater: (state: GameState) => GameState) => {
     gameStateRef.current = updater(gameStateRef.current);
@@ -50,7 +68,7 @@ const MathFall: React.FC = () => {
 
   const startGame = useCallback((difficulty: Difficulty) => {
     playBackgroundMusic();
-    const wave1 = generateWave(1, difficulty);
+    const wave1 = generateWave(1, difficulty, canvasSize.width);
     const startTime = Date.now();
     
     updateGameState(state => ({
@@ -72,14 +90,13 @@ const MathFall: React.FC = () => {
         currentStreak: 0
       }
     }));
-  }, [updateGameState]);
+  }, [updateGameState, canvasSize.width]);
 
   const startNextWave = useCallback(() => {
     const currentWave = gameStateRef.current.wave + 1;
-    const wave = generateWave(currentWave, gameStateRef.current.difficulty);
+    const wave = generateWave(currentWave, gameStateRef.current.difficulty, canvasSize.width);
     
     console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems`);
-    console.log(`Wave ${currentWave} problems:`, wave.problems.map(p => ({ text: p.text, y: p.y, speed: p.speed })));
     
     updateGameState(state => ({
       ...state,
@@ -92,7 +109,7 @@ const MathFall: React.FC = () => {
       problemsHandled: 0,
       gameStatus: 'playing'
     }));
-  }, [updateGameState]);
+  }, [updateGameState, canvasSize.width]);
 
   const findTargetProblem = useCallback((input: string): MathProblem | null => {
     if (!input) return null;
@@ -217,10 +234,10 @@ const MathFall: React.FC = () => {
       setStarField(stars => stars.map(star => ({
         ...star,
         y: star.y + star.speed,
-        ...(star.y > 600 && { y: 0, x: Math.random() * 800 })
+        ...(star.y > canvasSize.height && { y: 0, x: Math.random() * canvasSize.width })
       })));
 
-      // Update problems with reduced speed increase throughout wave
+      // Update problems
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
       const speedBoost = 1 + (waveProgress * 0.05);
       
@@ -230,8 +247,9 @@ const MathFall: React.FC = () => {
       }));
 
       // Check for problems that hit the bottom
-      const problemsAtBottom = updatedProblems.filter(p => p.y > 550);
-      const remainingProblems = updatedProblems.filter(p => p.y <= 550);
+      const bottomY = canvasSize.height - 50;
+      const problemsAtBottom = updatedProblems.filter(p => p.y > bottomY);
+      const remainingProblems = updatedProblems.filter(p => p.y <= bottomY);
 
       let newLives = currentState.lives;
       let newProblemsHandled = currentState.problemsHandled;
@@ -245,7 +263,6 @@ const MathFall: React.FC = () => {
           totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + problemsAtBottom.length
         });
         playSound('loseLife');
-        console.log(`${problemsAtBottom.length} problems hit bottom. New handled count: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
       }
 
       // Update particles
@@ -276,11 +293,8 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Fixed wave completion logic - simplified condition
-      console.log(`Wave ${currentState.wave} status: handled=${newProblemsHandled}, total=${currentState.totalProblemsInWave}, remaining=${remainingProblems.length}`);
-      
-      if (newProblemsHandled >= currentState.totalProblemsInWave) {
-        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
+      // Check wave completion
+      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
         playSound('waveComplete');
         updateGameState(state => ({
           ...state,
@@ -318,137 +332,7 @@ const MathFall: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [updateGameState, startNextWave]);
-
-  // Canvas rendering with modern visual effects
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Modern gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, 600);
-    gradient.addColorStop(0, '#0a0a1a');
-    gradient.addColorStop(0.5, '#1a1a2e');
-    gradient.addColorStop(1, '#16213e');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 800, 600);
-
-    // Enhanced stars with glow effect
-    starField.forEach((star, index) => {
-      const twinkle = Math.sin(Date.now() * 0.005 + index) * 0.5 + 0.5;
-      const alpha = 0.4 + twinkle * 0.6;
-      
-      // Glow effect
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 4;
-      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-      ctx.fillRect(star.x, star.y, 2, 2);
-      ctx.shadowBlur = 0;
-    });
-
-    if (gameState.gameStatus === 'menu') {
-      return;
-    }
-
-    if (gameState.gameStatus === 'gameOver') {
-      // Modern game over screen
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(0, 0, 800, 600);
-      
-      ctx.font = '48px "Arial Black"';
-      ctx.fillStyle = '#ff6b6b';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#ff6b6b';
-      ctx.shadowBlur = 20;
-      ctx.fillText('GAME OVER', 400, 250);
-      
-      ctx.font = '24px Arial';
-      ctx.fillStyle = '#66fcf1';
-      ctx.shadowBlur = 10;
-      ctx.fillText(`Final Score: ${gameState.score}`, 400, 300);
-      if (gameState.score === gameState.statistics.highScore) {
-        ctx.fillStyle = '#ffff00';
-        ctx.fillText('NEW HIGH SCORE!', 400, 330);
-      }
-      ctx.fillStyle = '#66fcf1';
-      ctx.fillText('Press SPACE to restart', 400, 380);
-      ctx.shadowBlur = 0;
-      
-      return;
-    }
-
-    if (gameState.gameStatus === 'waveComplete') {
-      // Modern wave complete screen
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.fillRect(0, 0, 800, 600);
-      
-      ctx.font = '36px "Arial Black"';
-      ctx.fillStyle = '#66fcf1';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = '#66fcf1';
-      ctx.shadowBlur = 15;
-      ctx.fillText(`WAVE ${gameState.wave} COMPLETE!`, 400, 300);
-      ctx.shadowBlur = 0;
-      
-      return;
-    }
-
-    // Enhanced player ship
-    ctx.fillStyle = '#66fcf1';
-    ctx.shadowColor = '#66fcf1';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.moveTo(400, 570);
-    ctx.lineTo(380, 590);
-    ctx.lineTo(420, 590);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillRect(375, 585, 10, 5);
-    ctx.fillRect(415, 585, 10, 5);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(398, 575, 4, 8);
-    ctx.shadowBlur = 0;
-
-    // Enhanced problems with modern styling
-    ctx.font = '20px "Arial Black"';
-    gameState.problems.forEach(problem => {
-      const isTarget = problem === gameState.targetProblem;
-      
-      if (isTarget) {
-        // Glowing target effect
-        const textWidth = ctx.measureText(problem.text).width;
-        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-        ctx.fillRect(problem.x - 8, problem.y - 30, textWidth + 16, 35);
-        
-        ctx.shadowColor = '#ffff00';
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#ffff00';
-      } else {
-        ctx.fillStyle = '#66fcf1';
-        ctx.shadowColor = '#66fcf1';
-        ctx.shadowBlur = 5;
-      }
-      
-      ctx.fillText(problem.text, problem.x, problem.y);
-      ctx.shadowBlur = 0;
-    });
-
-    // Enhanced particles with colors
-    gameState.particles.forEach(particle => {
-      const alpha = particle.life / particle.maxLife;
-      const color = particle.color || '#ffffff';
-      ctx.fillStyle = `${color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 3;
-      ctx.fillRect(particle.x, particle.y, 4, 4);
-      ctx.shadowBlur = 0;
-    });
-
-  }, [gameState, starField]);
+  }, [updateGameState, startNextWave, canvasSize]);
 
   // Handle space key for menu/restart
   useEffect(() => {
@@ -499,17 +383,15 @@ const MathFall: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative">
-      <div className="border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 relative backdrop-blur-sm">
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          className="block"
-          style={{ imageRendering: 'pixelated' }}
-        />
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+      <div 
+        ref={containerRef}
+        className="relative border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 backdrop-blur-sm"
+        style={{ width: canvasSize.width, height: canvasSize.height }}
+      >
+        <GameCanvas gameState={gameState} starField={starField} canvasSize={canvasSize} />
         
-        {/* React UI Overlays with modern design */}
+        {/* React UI Overlays */}
         {gameState.gameStatus === 'menu' && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md">
             <GameMenu
