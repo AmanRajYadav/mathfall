@@ -293,8 +293,9 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion
-      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
+      // Check wave completion - simplified logic
+      if (newProblemsHandled >= currentState.totalProblemsInWave) {
+        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
         playSound('waveComplete');
         updateGameState(state => ({
           ...state,
