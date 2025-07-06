@@ -16,62 +16,96 @@ const GameMenu: React.FC<GameMenuProps> = ({
   statistics 
 }) => {
   return (
-    <div className="text-center text-cyan-400">
-      <div className="mb-8">
-        <h1 className="text-6xl font-bold mb-4 text-cyan-300 animate-pulse">MATHFALL</h1>
-        <p className="text-xl">Destroy falling math problems by typing the answers!</p>
+    <div className="text-center text-cyan-400 max-w-4xl mx-auto px-8">
+      <div className="mb-12">
+        <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
+          MATHFALL
+        </h1>
+        <p className="text-xl text-slate-300 mb-4">🚀 Destroy falling math problems by typing the answers! 🔢</p>
+        <p className="text-sm text-slate-400">Use your keyboard to save the universe from mathematical chaos</p>
       </div>
       
-      <div className="mb-8">
-        <h2 className="text-2xl mb-4">Choose Difficulty</h2>
-        <div className="flex justify-center gap-4 mb-6">
+      <div className="mb-12">
+        <h2 className="text-3xl mb-8 text-white font-bold">Choose Your Challenge</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <button
             onClick={() => onStartGame('easy')}
-            className="bg-green-600 hover:bg-green-700 px-8 py-4 rounded-lg text-xl font-bold transition-colors"
+            className="group bg-gradient-to-br from-green-600 to-emerald-700 hover:from-green-500 hover:to-emerald-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 border border-green-400/20"
           >
-            EASY
-            <div className="text-sm font-normal mt-1">Simple operations, slower speed</div>
+            <div className="text-2xl mb-2">🟢 EASY</div>
+            <div className="text-sm font-normal text-green-100">
+              Simple operations<br/>
+              Relaxed pace<br/>
+              Perfect for beginners
+            </div>
           </button>
+          
           <button
             onClick={() => onStartGame('medium')}
-            className="bg-yellow-600 hover:bg-yellow-700 px-8 py-4 rounded-lg text-xl font-bold transition-colors"
+            className="group bg-gradient-to-br from-yellow-600 to-orange-700 hover:from-yellow-500 hover:to-orange-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/25 border border-yellow-400/20"
           >
-            MEDIUM
-            <div className="text-sm font-normal mt-1">Mixed operations, moderate speed</div>
+            <div className="text-2xl mb-2">🟡 MEDIUM</div>
+            <div className="text-sm font-normal text-yellow-100">
+              Mixed operations<br/>
+              Moderate speed<br/>
+              Balanced challenge
+            </div>
           </button>
+          
           <button
             onClick={() => onStartGame('hard')}
-            className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg text-xl font-bold transition-colors"
+            className="group bg-gradient-to-br from-red-600 to-pink-700 hover:from-red-500 hover:to-pink-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 border border-red-400/20"
           >
-            HARD
-            <div className="text-sm font-normal mt-1">Complex problems, fast speed</div>
+            <div className="text-2xl mb-2">🔴 HARD</div>
+            <div className="text-sm font-normal text-red-100">
+              Complex problems<br/>
+              High speed<br/>
+              Expert level
+            </div>
           </button>
         </div>
       </div>
       
-      <div className="mb-6">
-        <div className="bg-gray-800 rounded-lg p-4 inline-block">
-          <h3 className="text-lg font-bold mb-2">Quick Stats</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>High Score: <span className="text-yellow-400">{statistics.highScore}</span></div>
-            <div>Best Streak: <span className="text-green-400">{statistics.bestStreak}</span></div>
-            <div>Accuracy: <span className="text-blue-400">{statistics.accuracy}%</span></div>
-            <div>Questions: <span className="text-purple-400">{statistics.totalQuestionsAnswered}</span></div>
+      <div className="mb-8">
+        <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl">
+          <h3 className="text-2xl font-bold mb-4 text-white flex items-center justify-center gap-2">
+            <span className="text-3xl">📊</span>
+            Your Stats
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/20 p-4 rounded-xl border border-yellow-400/20">
+              <div className="text-yellow-400 font-bold text-lg">{statistics.highScore.toLocaleString()}</div>
+              <div className="text-slate-300">🏆 High Score</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500/10 to-green-600/20 p-4 rounded-xl border border-green-400/20">
+              <div className="text-green-400 font-bold text-lg">{statistics.bestStreak}</div>
+              <div className="text-slate-300">🔥 Best Streak</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 p-4 rounded-xl border border-blue-400/20">
+              <div className="text-blue-400 font-bold text-lg">{statistics.accuracy}%</div>
+              <div className="text-slate-300">🎯 Accuracy</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/20 p-4 rounded-xl border border-purple-400/20">
+              <div className="text-purple-400 font-bold text-lg">{statistics.totalQuestionsAnswered}</div>
+              <div className="text-slate-300">📝 Questions</div>
+            </div>
           </div>
         </div>
       </div>
       
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-6">
         <button
           onClick={onShowStatistics}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded transition-colors"
+          className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 px-6 py-3 rounded-xl transition-all duration-300 font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-blue-500/25"
         >
+          <span className="text-xl">📈</span>
           STATISTICS
         </button>
         <button
           onClick={onShowSettings}
-          className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded transition-colors"
+          className="bg-gradient-to-r from-gray-600 to-slate-700 hover:from-gray-500 hover:to-slate-600 px-6 py-3 rounded-xl transition-all duration-300 font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-gray-500/25"
         >
+          <span className="text-xl">⚙️</span>
           SETTINGS
         </button>
       </div>
