@@ -321,7 +321,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
 
 export const checkAnswer = (problem: MathProblem, input: string): boolean => {
   const inputNum = parseFloat(input);
-  const answerNum = typeof problem.answer === 'number' ? problem.answer : parseFloat(problem.answer.toString());
+  const answerNum = problem.answer;
   
   // Handle decimal precision
   if (Math.abs(answerNum - Math.round(answerNum)) > 0.001) {
