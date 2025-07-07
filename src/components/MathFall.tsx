@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, MathProblem, Particle, Difficulty } from '../types/game';
 import { generateWave, checkAnswer } from '../utils/gameLogic';
@@ -301,25 +300,15 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion - ensure both conditions are met for proper progression
-      if (newProblemsHandled >= currentState.totalProblemsInWave) {
-        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
+      // Check wave completion - simplified logic
+      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
+        console.log(`Wave ${currentState.wave} complete! Starting next wave immediately...`);
         playSound('waveComplete');
         
-        updateGameState(state => ({
-          ...state,
-          gameStatus: 'waveComplete',
-          problems: [],
-          particles: updatedParticles,
-          lives: newLives,
-          problemsHandled: newProblemsHandled,
-          statistics: newStats
-        }));
-
-        // Start next wave after delay
+        // Directly start next wave without intermediate state
         setTimeout(() => {
           startNextWave();
-        }, 1500);
+        }, 500);
         return;
       }
 
