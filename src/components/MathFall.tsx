@@ -300,19 +300,29 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion - simplified logic
-      if (newProblemsHandled >= currentState.totalProblemsInWave && remainingProblems.length === 0) {
-        console.log(`Wave ${currentState.wave} complete! Starting next wave immediately...`);
+      // Check wave completion - simple condition: just check if we've handled enough problems
+      if (newProblemsHandled >= currentState.totalProblemsInWave) {
+        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
         playSound('waveComplete');
         
-        // Directly start next wave without intermediate state
+        // Clear remaining problems and start next wave
+        updateGameState(state => ({
+          ...state,
+          problems: [], // Clear all problems
+          particles: updatedParticles,
+          lives: newLives,
+          problemsHandled: newProblemsHandled,
+          statistics: newStats
+        }));
+
+        // Start next wave immediately
         setTimeout(() => {
           startNextWave();
-        }, 500);
+        }, 100); // Very short delay to allow state update
         return;
       }
 
-      // Update game state
+      // Update game state normally
       updateGameState(state => ({
         ...state,
         problems: remainingProblems,
