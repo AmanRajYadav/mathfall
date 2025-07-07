@@ -6,11 +6,11 @@ let problemIdCounter = 0;
 const getDifficultyMultipliers = (difficulty: Difficulty) => {
   switch (difficulty) {
     case 'easy':
-      return { speedMultiplier: 0.8, complexityMultiplier: 0.6, problemCount: 1.0 };
+      return { speedMultiplier: 0.8, complexityMultiplier: 0.6, problemCount: 1.0, spacingMultiplier: 1.2 };
     case 'medium':
-      return { speedMultiplier: 1.0, complexityMultiplier: 1.0, problemCount: 1.2 };
+      return { speedMultiplier: 1.0, complexityMultiplier: 1.0, problemCount: 1.2, spacingMultiplier: 2.5 };
     case 'hard':
-      return { speedMultiplier: 1.3, complexityMultiplier: 1.4, problemCount: 1.4 };
+      return { speedMultiplier: 1.3, complexityMultiplier: 1.4, problemCount: 1.4, spacingMultiplier: 5.0 };
   }
 };
 
@@ -278,7 +278,7 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
 
 export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasWidth: number = 800): Wave => {
   const problems: MathProblem[] = [];
-  const { problemCount } = getDifficultyMultipliers(difficulty);
+  const { problemCount, spacingMultiplier } = getDifficultyMultipliers(difficulty);
   
   const baseCounts = {
     easy: { base: 6, increment: 1 },
@@ -291,7 +291,9 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
   
   console.log(`Generating Wave ${waveNumber} with ${totalProblems} problems (difficulty: ${difficulty})`);
   
-  const spacing = Math.max(8, 18 - (waveNumber * 0.5));
+  // Apply difficulty-based spacing multiplier
+  const baseSpacing = Math.max(8, 18 - (waveNumber * 0.5));
+  const spacing = baseSpacing * spacingMultiplier;
   
   // Problem type distribution based on wave - progressive introduction
   const getProblemsForWave = (wave: number): Array<'addition' | 'subtraction' | 'multiplication' | 'division' | 'exponents' | 'roots' | 'fractions' | 'decimals' | 'complex'> => {
@@ -315,7 +317,7 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
     problems.push(problem);
   }
   
-  console.log(`Wave ${waveNumber} generated successfully: ${problems.length} problems created with types: ${[...new Set(problems.map(p => p.text.includes('+') ? 'addition' : p.text.includes('-') ? 'subtraction' : p.text.includes('×') ? 'multiplication' : p.text.includes('÷') ? 'division' : 'other'))].join(', ')}`);
+  console.log(`Wave ${waveNumber} generated successfully: ${problems.length} problems created with spacing: ${spacing.toFixed(1)} (${difficulty} mode)`);
   
   return { problems, totalProblems };
 };
