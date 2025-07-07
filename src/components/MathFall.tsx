@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, MathProblem, Particle, Difficulty } from '../types/game';
 import { generateWave, checkAnswer } from '../utils/gameLogic';
@@ -71,6 +72,8 @@ const MathFall: React.FC = () => {
     const wave1 = generateWave(1, difficulty, canvasSize.width);
     const startTime = Date.now();
     
+    console.log(`Starting new game - Wave 1 with ${wave1.totalProblems} problems`);
+    
     updateGameState(state => ({
       ...state,
       gameStatus: 'playing',
@@ -96,7 +99,7 @@ const MathFall: React.FC = () => {
     const currentWave = gameStateRef.current.wave + 1;
     const wave = generateWave(currentWave, gameStateRef.current.difficulty, canvasSize.width);
     
-    console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems`);
+    console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems (difficulty: ${gameStateRef.current.difficulty})`);
     
     updateGameState(state => ({
       ...state,
@@ -150,7 +153,7 @@ const MathFall: React.FC = () => {
 
     const key = event.key;
     
-    if (key >= '0' && key <= '9') {
+    if (key >= '0' && key <= '9' || key === '.') {
       const newInput = currentState.currentInput + key;
       const targetProblem = findTargetProblem(newInput);
       
@@ -162,14 +165,17 @@ const MathFall: React.FC = () => {
           createExplosion(targetProblem.x + 50, targetProblem.y + 15, isStreak);
           
           const baseScore = 10;
+          const waveMultiplier = Math.floor(currentState.wave / 2) + 1;
           const streakMultiplier = Math.floor(currentState.statistics.currentStreak / 5) + 1;
-          const scoreGain = baseScore * streakMultiplier;
+          const scoreGain = baseScore * waveMultiplier * streakMultiplier;
           
           const newStats = updateStatistics(currentState.statistics, {
             currentStreak: currentState.statistics.currentStreak + 1,
             totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + 1,
             correctAnswers: currentState.statistics.correctAnswers + 1
           });
+          
+          console.log(`Problem solved! Problems handled: ${currentState.problemsHandled + 1}/${currentState.totalProblemsInWave}`);
           
           updateGameState(state => ({
             ...state,
@@ -237,16 +243,17 @@ const MathFall: React.FC = () => {
         ...(star.y > canvasSize.height && { y: 0, x: Math.random() * canvasSize.width })
       })));
 
-      // Update problems
+      // Update problems with progressive speed increase
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
-      const speedBoost = 1 + (waveProgress * 0.05);
+      const difficultySpeedMultiplier = currentState.difficulty === 'easy' ? 0.8 : currentState.difficulty === 'hard' ? 1.3 : 1.0;
+      const speedBoost = (1 + (waveProgress * 0.05) + (currentState.wave * 0.02)) * difficultySpeedMultiplier;
       
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,
         y: problem.y + (problem.speed * speedBoost)
       }));
 
-      // Check for problems that hit the bottom
+      // Check for problems that hit the bottom - use canvas height
       const bottomY = canvasSize.height - 50;
       const problemsAtBottom = updatedProblems.filter(p => p.y > bottomY);
       const remainingProblems = updatedProblems.filter(p => p.y <= bottomY);
@@ -263,6 +270,7 @@ const MathFall: React.FC = () => {
           totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + problemsAtBottom.length
         });
         playSound('loseLife');
+        console.log(`${problemsAtBottom.length} problems missed! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
       }
 
       // Update particles
@@ -293,10 +301,11 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion - simplified logic
+      // Check wave completion - ensure both conditions are met for proper progression
       if (newProblemsHandled >= currentState.totalProblemsInWave) {
         console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
         playSound('waveComplete');
+        
         updateGameState(state => ({
           ...state,
           gameStatus: 'waveComplete',
@@ -307,6 +316,7 @@ const MathFall: React.FC = () => {
           statistics: newStats
         }));
 
+        // Start next wave after delay
         setTimeout(() => {
           startNextWave();
         }, 1500);
@@ -333,7 +343,7 @@ const MathFall: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [updateGameState, startNextWave, canvasSize]);
+  }, [updateGameState, startNextWave, canvasSize, handleKeyPress]);
 
   // Handle space key for menu/restart
   useEffect(() => {
