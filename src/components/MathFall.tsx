@@ -113,6 +113,19 @@ const MathFall: React.FC = () => {
     }));
   }, [updateGameState, canvasSize.width]);
 
+  const checkWaveCompletion = useCallback(() => {
+    const currentState = gameStateRef.current;
+    if (currentState.problemsHandled >= currentState.totalProblemsInWave) {
+      console.log(`Wave ${currentState.wave} complete! Starting next wave...`);
+      playSound('waveComplete');
+      
+      // Start next wave after a short delay
+      setTimeout(() => {
+        startNextWave();
+      }, 1000);
+    }
+  }, [startNextWave]);
+
   const findTargetProblem = useCallback((input: string): MathProblem | null => {
     if (!input) return null;
     
@@ -174,7 +187,8 @@ const MathFall: React.FC = () => {
             correctAnswers: currentState.statistics.correctAnswers + 1
           });
           
-          console.log(`Problem solved! Problems handled: ${currentState.problemsHandled + 1}/${currentState.totalProblemsInWave}`);
+          const newProblemsHandled = currentState.problemsHandled + 1;
+          console.log(`Problem solved! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
           
           updateGameState(state => ({
             ...state,
@@ -182,9 +196,14 @@ const MathFall: React.FC = () => {
             score: state.score + scoreGain,
             currentInput: '',
             targetProblem: null,
-            problemsHandled: state.problemsHandled + 1,
+            problemsHandled: newProblemsHandled,
             statistics: newStats
           }));
+
+          // Check for wave completion after state update
+          setTimeout(() => {
+            checkWaveCompletion();
+          }, 100);
         } else {
           // Partial correct input
           updateGameState(state => ({
@@ -217,7 +236,7 @@ const MathFall: React.FC = () => {
         targetProblem
       }));
     }
-  }, [findTargetProblem, createExplosion, updateGameState]);
+  }, [findTargetProblem, createExplosion, updateGameState, checkWaveCompletion]);
 
   // Keyboard event listener
   useEffect(() => {
@@ -300,28 +319,6 @@ const MathFall: React.FC = () => {
         return;
       }
 
-      // Check wave completion - simple condition: just check if we've handled enough problems
-      if (newProblemsHandled >= currentState.totalProblemsInWave) {
-        console.log(`Wave ${currentState.wave} complete! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
-        playSound('waveComplete');
-        
-        // Clear remaining problems and start next wave
-        updateGameState(state => ({
-          ...state,
-          problems: [], // Clear all problems
-          particles: updatedParticles,
-          lives: newLives,
-          problemsHandled: newProblemsHandled,
-          statistics: newStats
-        }));
-
-        // Start next wave immediately
-        setTimeout(() => {
-          startNextWave();
-        }, 100); // Very short delay to allow state update
-        return;
-      }
-
       // Update game state normally
       updateGameState(state => ({
         ...state,
@@ -333,6 +330,13 @@ const MathFall: React.FC = () => {
         targetProblem: state.targetProblem && remainingProblems.find(p => p.id === state.targetProblem?.id) || null
       }));
 
+      // Check wave completion if problems were missed
+      if (problemsAtBottom.length > 0) {
+        setTimeout(() => {
+          checkWaveCompletion();
+        }, 100);
+      }
+
       animationRef.current = requestAnimationFrame(gameLoop);
     };
 
@@ -342,7 +346,7 @@ const MathFall: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [updateGameState, startNextWave, canvasSize, handleKeyPress]);
+  }, [updateGameState, canvasSize, checkWaveCompletion]);
 
   // Handle space key for menu/restart
   useEffect(() => {
