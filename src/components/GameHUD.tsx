@@ -1,12 +1,15 @@
 
 import React from 'react';
 import { GameState } from '../types/game';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface GameHUDProps {
   gameState: GameState;
 }
 
 const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
+  const isMobile = useIsMobile();
+  
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -17,85 +20,113 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
 
   return (
     <>
-      {/* Top HUD - transparent without boxes */}
-      <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="flex justify-between items-center px-4">
+      {/* Top HUD - responsive */}
+      <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10">
+        <div className="flex justify-between items-center px-2 sm:px-4">
           <div className="text-white font-mono">
-            <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1 drop-shadow-lg">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1 drop-shadow-lg">
               {gameState.score.toLocaleString()}
             </div>
-            <div className="text-sm text-white flex items-center gap-2 drop-shadow-md">
-              <span>Streak:</span>
-              <span className={`font-bold px-3 py-1 rounded-full text-sm ${
+            <div className="text-xs sm:text-sm text-white flex items-center gap-1 sm:gap-2 drop-shadow-md">
+              <span className={isMobile ? 'hidden' : ''}>Streak:</span>
+              <span className={`font-bold px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                 gameState.statistics.currentStreak > 5 
                   ? 'text-yellow-300 bg-yellow-400/20 border border-yellow-400/30' 
                   : 'text-emerald-300 bg-emerald-400/20 border border-emerald-400/30'
               }`}>
-                {gameState.statistics.currentStreak}
+                {isMobile ? `🔥${gameState.statistics.currentStreak}` : gameState.statistics.currentStreak}
               </span>
             </div>
           </div>
           
           <div className="text-center">
-            <div className="text-white font-mono text-2xl font-bold mb-1 flex items-center gap-3 drop-shadow-lg">
-              <span className="text-3xl">🌊</span>
-              Wave {gameState.wave}
+            <div className="text-white font-mono text-lg sm:text-xl md:text-2xl font-bold mb-1 flex items-center gap-1 sm:gap-3 drop-shadow-lg">
+              <span className="text-xl sm:text-2xl md:text-3xl">🌊</span>
+              <span className={isMobile ? 'text-sm' : ''}>{isMobile ? `W${gameState.wave}` : `Wave ${gameState.wave}`}</span>
             </div>
-            <div className="text-sm text-white uppercase tracking-wider font-semibold px-4 py-2 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full border border-white/20 backdrop-blur-sm">
-              {gameState.difficulty}
+            <div className="text-xs sm:text-sm text-white uppercase tracking-wider font-semibold px-2 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full border border-white/20 backdrop-blur-sm">
+              {isMobile ? gameState.difficulty.charAt(0).toUpperCase() : gameState.difficulty}
             </div>
           </div>
           
           <div className="text-right text-white font-mono">
-            <div className="text-xl font-bold flex items-center gap-3 drop-shadow-lg">
-              <span className="text-2xl">⏱️</span>
-              {formatTime(currentTime)}
+            <div className="text-sm sm:text-lg md:text-xl font-bold flex items-center gap-1 sm:gap-3 drop-shadow-lg">
+              <span className="text-lg sm:text-xl md:text-2xl">⏱️</span>
+              <span className={isMobile ? 'text-xs' : ''}>{formatTime(currentTime)}</span>
             </div>
-            <div className="text-sm text-white drop-shadow-md">
-              <span className="text-emerald-300 font-bold">{gameState.statistics.accuracy}%</span> Accuracy
+            <div className="text-xs sm:text-sm text-white drop-shadow-md">
+              <span className="text-emerald-300 font-bold">{gameState.statistics.accuracy}%</span>
+              {!isMobile && ' Accuracy'}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom HUD - transparent without boxes */}
-      <div className="absolute bottom-4 left-4 right-4 z-10">
-        <div className="flex justify-between items-center px-6">
-          <div className="text-white font-mono flex-1">
-            <div className="text-2xl mb-3 flex items-center gap-4">
-              <span className="text-white drop-shadow-lg">Input:</span>
-              <div className="bg-slate-800/70 border border-slate-500/50 px-6 py-3 rounded-xl font-bold text-yellow-300 min-w-[140px] text-center shadow-lg backdrop-blur-sm">
-                {gameState.currentInput || '_'}
-              </div>
-            </div>
-            {gameState.targetProblem && (
-              <div className="text-lg text-white flex items-center gap-3 drop-shadow-md">
-                <span className="text-cyan-300">→</span>
-                <span className="text-cyan-300 font-semibold bg-cyan-400/20 px-4 py-2 rounded-lg border border-cyan-400/30 backdrop-blur-sm">
-                  {gameState.targetProblem.text}
-                </span>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4 ml-8">
-            <span className="text-white text-xl font-mono font-semibold flex items-center gap-3 drop-shadow-lg">
-              <span className="text-3xl">❤️</span>
-              Lives:
-            </span>
-            <div className="flex gap-2">
-              {Array.from({ length: gameState.lives }, (_, i) => (
-                <div key={i} className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/40 transform hover:scale-110 transition-all duration-200 border-2 border-white/30">
-                    <div className="text-white text-xl">♥</div>
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-400/60 to-pink-500/60 rounded-full blur-md -z-10"></div>
+      {/* Bottom HUD - responsive for mobile */}
+      {!isMobile && (
+        <div className="absolute bottom-4 left-4 right-4 z-10">
+          <div className="flex justify-between items-center px-6">
+            <div className="text-white font-mono flex-1">
+              <div className="text-2xl mb-3 flex items-center gap-4">
+                <span className="text-white drop-shadow-lg">Input:</span>
+                <div className="bg-slate-800/70 border border-slate-500/50 px-6 py-3 rounded-xl font-bold text-yellow-300 min-w-[140px] text-center shadow-lg backdrop-blur-sm">
+                  {gameState.currentInput || '_'}
                 </div>
-              ))}
+              </div>
+              {gameState.targetProblem && (
+                <div className="text-lg text-white flex items-center gap-3 drop-shadow-md">
+                  <span className="text-cyan-300">→</span>
+                  <span className="text-cyan-300 font-semibold bg-cyan-400/20 px-4 py-2 rounded-lg border border-cyan-400/30 backdrop-blur-sm">
+                    {gameState.targetProblem.text}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4 ml-8">
+              <span className="text-white text-xl font-mono font-semibold flex items-center gap-3 drop-shadow-lg">
+                <span className="text-3xl">❤️</span>
+                Lives:
+              </span>
+              <div className="flex gap-2">
+                {Array.from({ length: gameState.lives }, (_, i) => (
+                  <div key={i} className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/40 transform hover:scale-110 transition-all duration-200 border-2 border-white/30">
+                      <div className="text-white text-xl">♥</div>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-400/60 to-pink-500/60 rounded-full blur-md -z-10"></div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Mobile bottom HUD - compact version */}
+      {isMobile && (
+        <div className="absolute bottom-32 left-2 right-2 z-10">
+          <div className="flex justify-between items-center px-2">
+            <div className="text-white font-mono text-center">
+              {gameState.targetProblem && (
+                <div className="text-sm flex items-center gap-2 justify-center bg-cyan-400/20 px-3 py-1 rounded-lg border border-cyan-400/30 backdrop-blur-sm">
+                  <span className="text-cyan-300">→</span>
+                  <span className="text-cyan-300 font-semibold">
+                    {gameState.targetProblem.text}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-white text-sm font-mono font-semibold flex items-center gap-1">
+                <span className="text-lg">❤️</span>
+                {gameState.lives}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced streak indicator */}
       {gameState.statistics.currentStreak > 3 && (

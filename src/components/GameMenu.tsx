@@ -16,21 +16,21 @@ const GameMenu: React.FC<GameMenuProps> = ({
   statistics 
 }) => {
   return (
-    <div className="text-center text-cyan-400 max-w-4xl mx-auto px-8">
-      <div className="mb-12">
-        <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
+    <div className="text-center text-cyan-400 max-w-4xl mx-auto px-4 sm:px-8">
+      <div className="mb-6 sm:mb-8 md:mb-12">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 md:mb-6 bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
           MATHFALL
         </h1>
-        <p className="text-xl text-slate-300 mb-4">🚀 Destroy falling math problems by typing the answers! 🔢</p>
-        <p className="text-sm text-slate-400">Use your keyboard to save the universe from mathematical chaos</p>
+        <p className="text-base sm:text-lg md:text-xl text-slate-300 mb-2 sm:mb-4">🚀 Destroy falling math problems by typing the answers! 🔢</p>
+        <p className="text-xs sm:text-sm text-slate-400">Use your keyboard to save the universe from mathematical chaos</p>
       </div>
       
-      <div className="mb-12">
-        <h2 className="text-3xl mb-8 text-white font-bold">Choose Your Challenge</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="mb-6 sm:mb-8 md:mb-12">
+        <h2 className="text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-6 md:mb-8 text-white font-bold">Choose Your Challenge</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <button
             onClick={() => onStartGame('easy')}
-            className="group bg-gradient-to-br from-green-600 to-emerald-700 hover:from-green-500 hover:to-emerald-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 border border-green-400/20"
+            className="group bg-gradient-to-br from-green-600 to-emerald-700 hover:from-green-500 hover:to-emerald-600 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 rounded-2xl text-lg sm:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 border border-green-400/20"
           >
             <div className="text-2xl mb-2">🟢 EASY</div>
             <div className="text-sm font-normal text-green-100">
@@ -42,7 +42,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
           
           <button
             onClick={() => onStartGame('medium')}
-            className="group bg-gradient-to-br from-yellow-600 to-orange-700 hover:from-yellow-500 hover:to-orange-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/25 border border-yellow-400/20"
+            className="group bg-gradient-to-br from-yellow-600 to-orange-700 hover:from-yellow-500 hover:to-orange-600 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 rounded-2xl text-lg sm:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/25 border border-yellow-400/20"
           >
             <div className="text-2xl mb-2">🟡 MEDIUM</div>
             <div className="text-sm font-normal text-yellow-100">
@@ -54,7 +54,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
           
           <button
             onClick={() => onStartGame('hard')}
-            className="group bg-gradient-to-br from-red-600 to-pink-700 hover:from-red-500 hover:to-pink-600 px-8 py-6 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 border border-red-400/20"
+            className="group bg-gradient-to-br from-red-600 to-pink-700 hover:from-red-500 hover:to-pink-600 px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 rounded-2xl text-lg sm:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 border border-red-400/20"
           >
             <div className="text-2xl mb-2">🔴 HARD</div>
             <div className="text-sm font-normal text-red-100">
@@ -66,13 +66,13 @@ const GameMenu: React.FC<GameMenuProps> = ({
         </div>
       </div>
       
-      <div className="mb-8">
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl">
-          <h3 className="text-2xl font-bold mb-4 text-white flex items-center justify-center gap-2">
-            <span className="text-3xl">📊</span>
+      <div className="mb-6 sm:mb-8">
+        <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/10 shadow-2xl">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-white flex items-center justify-center gap-2">
+            <span className="text-2xl sm:text-3xl">📊</span>
             Your Stats
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/20 p-4 rounded-xl border border-yellow-400/20">
               <div className="text-yellow-400 font-bold text-lg">{statistics.highScore.toLocaleString()}</div>
               <div className="text-slate-300">🏆 High Score</div>

@@ -6,9 +6,10 @@ interface GameCanvasProps {
   gameState: GameState;
   starField: Array<{x: number, y: number, speed: number}>;
   canvasSize: { width: number, height: number };
+  isGameOver?: boolean;
 }
 
-const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSize }) => {
+const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSize, isGameOver = false }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -100,38 +101,66 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       return;
     }
 
-    // Enhanced player ship with glow trail
+    // Enhanced player ship with glow trail (show explosion if game over)
     const shipX = canvasSize.width / 2;
     const shipY = canvasSize.height - 25;
-    const shipGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, 25);
-    shipGradient.addColorStop(0, '#70a1ff');
-    shipGradient.addColorStop(0.7, '#5352ed');
-    shipGradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = shipGradient;
-    ctx.fillRect(shipX - 25, shipY - 25, 50, 50);
-
-    ctx.fillStyle = '#70a1ff';
-    ctx.shadowColor = '#70a1ff';
-    ctx.shadowBlur = 15;
-    ctx.beginPath();
-    ctx.moveTo(shipX, shipY);
-    ctx.lineTo(shipX - 15, shipY + 20);
-    ctx.lineTo(shipX + 15, shipY + 20);
-    ctx.closePath();
-    ctx.fill();
-
-    // Engine trails
-    ctx.fillStyle = '#ff6b6b';
-    ctx.shadowColor = '#ff6b6b';
-    ctx.shadowBlur = 10;
-    ctx.fillRect(shipX - 10, shipY + 15, 6, 8);
-    ctx.fillRect(shipX + 4, shipY + 15, 6, 8);
     
-    // Cockpit
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowBlur = 5;
-    ctx.fillRect(shipX - 2, shipY + 5, 4, 8);
-    ctx.shadowBlur = 0;
+    if (isGameOver) {
+      // Rocket explosion effect
+      const explosionRadius = 40;
+      const explosionGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, explosionRadius);
+      explosionGradient.addColorStop(0, '#ff4757');
+      explosionGradient.addColorStop(0.3, '#ff6b6b');
+      explosionGradient.addColorStop(0.6, '#ffa502');
+      explosionGradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = explosionGradient;
+      ctx.fillRect(shipX - explosionRadius, shipY - explosionRadius, explosionRadius * 2, explosionRadius * 2);
+      
+      // Debris particles
+      for (let i = 0; i < 20; i++) {
+        const angle = (i / 20) * Math.PI * 2;
+        const distance = 20 + Math.random() * 30;
+        const debrisX = shipX + Math.cos(angle) * distance;
+        const debrisY = shipY + Math.sin(angle) * distance;
+        
+        ctx.fillStyle = Math.random() > 0.5 ? '#70a1ff' : '#ffffff';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 5;
+        ctx.fillRect(debrisX - 2, debrisY - 2, 4, 4);
+      }
+      ctx.shadowBlur = 0;
+    } else {
+      // Normal rocket
+      const shipGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, 25);
+      shipGradient.addColorStop(0, '#70a1ff');
+      shipGradient.addColorStop(0.7, '#5352ed');
+      shipGradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = shipGradient;
+      ctx.fillRect(shipX - 25, shipY - 25, 50, 50);
+
+      ctx.fillStyle = '#70a1ff';
+      ctx.shadowColor = '#70a1ff';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.moveTo(shipX, shipY);
+      ctx.lineTo(shipX - 15, shipY + 20);
+      ctx.lineTo(shipX + 15, shipY + 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Engine trails
+      ctx.fillStyle = '#ff6b6b';
+      ctx.shadowColor = '#ff6b6b';
+      ctx.shadowBlur = 10;
+      ctx.fillRect(shipX - 10, shipY + 15, 6, 8);
+      ctx.fillRect(shipX + 4, shipY + 15, 6, 8);
+      
+      // Cockpit
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 5;
+      ctx.fillRect(shipX - 2, shipY + 5, 4, 8);
+      ctx.shadowBlur = 0;
+    }
 
     // Enhanced problems with dynamic styling
     const problemFontSize = Math.min(20, canvasSize.width / 40);
@@ -182,14 +211,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       ctx.shadowBlur = 0;
     });
 
-  }, [gameState, starField, canvasSize]);
+  }, [gameState, starField, canvasSize, isGameOver]);
 
   return (
     <canvas
       ref={canvasRef}
       width={canvasSize.width}
       height={canvasSize.height}
-      className="block rounded-2xl"
+      className={`block rounded-2xl ${gameState.gameStatus === 'gameOver' ? 'animate-screen-shake' : ''}`}
       style={{ imageRendering: 'pixelated' }}
     />
   );

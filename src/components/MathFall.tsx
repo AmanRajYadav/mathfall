@@ -8,6 +8,7 @@ import GameHUD from './GameHUD';
 import StatisticsPanel from './StatisticsPanel';
 import SettingsPanel from './SettingsPanel';
 import GameCanvas from './GameCanvas';
+import MobileNumpad from './MobileNumpad';
 
 const MathFall: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -158,14 +159,10 @@ const MathFall: React.FC = () => {
     }));
   }, [updateGameState]);
 
-  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+  const handleKeyInput = useCallback((key: string) => {
     const currentState = gameStateRef.current;
     
-    if (currentState.gameStatus !== 'playing') return;
-
-    const key = event.key;
-    
-    if (key >= '0' && key <= '9' || key === '.') {
+    if ((key >= '0' && key <= '9') || key === '.') {
       const newInput = currentState.currentInput + key;
       const targetProblem = findTargetProblem(newInput);
       
@@ -237,6 +234,22 @@ const MathFall: React.FC = () => {
       }));
     }
   }, [findTargetProblem, createExplosion, updateGameState, checkWaveCompletion]);
+
+  const handleMobileKeyPress = useCallback((key: string) => {
+    const currentState = gameStateRef.current;
+    
+    if (currentState.gameStatus !== 'playing') return;
+
+    handleKeyInput(key);
+  }, [handleKeyInput]);
+
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    const currentState = gameStateRef.current;
+    
+    if (currentState.gameStatus !== 'playing') return;
+
+    handleKeyInput(event.key);
+  }, [handleKeyInput]);
 
   // Keyboard event listener
   useEffect(() => {
@@ -400,10 +413,15 @@ const MathFall: React.FC = () => {
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
       <div 
         ref={containerRef}
-        className="relative border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 backdrop-blur-sm"
+        className={`relative border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 backdrop-blur-sm ${gameState.gameStatus === 'gameOver' ? 'animate-screen-shake' : ''}`}
         style={{ width: canvasSize.width, height: canvasSize.height }}
       >
-        <GameCanvas gameState={gameState} starField={starField} canvasSize={canvasSize} />
+        <GameCanvas 
+          gameState={gameState} 
+          starField={starField} 
+          canvasSize={canvasSize} 
+          isGameOver={gameState.gameStatus === 'gameOver'} 
+        />
         
         {/* React UI Overlays */}
         {gameState.gameStatus === 'menu' && (
@@ -434,7 +452,13 @@ const MathFall: React.FC = () => {
         )}
         
         {gameState.gameStatus === 'playing' && (
-          <GameHUD gameState={gameState} />
+          <>
+            <GameHUD gameState={gameState} />
+            <MobileNumpad 
+              onKeyPress={handleMobileKeyPress}
+              currentInput={gameState.currentInput}
+            />
+          </>
         )}
       </div>
     </div>
