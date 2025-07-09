@@ -103,8 +103,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
 
     // Enhanced player ship with glow trail (show explosion if game over)
     const shipX = canvasSize.width / 2;
-    // Position rocket higher on mobile to account for numpad
-    const shipY = canvasSize.height - (canvasSize.width < 768 ? 180 : 25);
+    // Position rocket higher on mobile to account for smaller numpad
+    const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
     
     if (isGameOver) {
       // Rocket explosion effect

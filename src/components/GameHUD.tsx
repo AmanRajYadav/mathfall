@@ -105,7 +105,7 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
 
       {/* Mobile bottom HUD - compact version */}
       {isMobile && (
-        <div className="absolute bottom-40 left-2 right-2 z-10">
+        <div className="absolute bottom-24 left-2 right-2 z-10">
           <div className="flex justify-between items-center px-2">
             <div className="text-white font-mono text-center">
               {gameState.targetProblem && (
