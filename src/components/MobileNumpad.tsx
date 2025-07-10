@@ -13,8 +13,7 @@ const MobileNumpad: React.FC<MobileNumpadProps> = ({ onKeyPress, currentInput })
 
   const keys = [
     ['1', '2', '3', '4', '5'],
-    ['6', '7', '8', '9', '0'],
-    ['.', '⌫']
+    ['6', '7', '8', '9', '0', '.', '⌫']
   ];
 
   const handleKeyPress = (key: string) => {
@@ -38,12 +37,12 @@ const MobileNumpad: React.FC<MobileNumpadProps> = ({ onKeyPress, currentInput })
         {/* Horizontal numpad */}
         <div className="space-y-1">
           {keys.map((row, rowIndex) => (
-            <div key={rowIndex} className={`flex gap-1 justify-center ${rowIndex === 2 ? 'justify-center' : ''}`}>
+            <div key={rowIndex} className="flex gap-1 justify-center">
               {row.map((key) => (
                 <button
                   key={key}
                   onClick={() => handleKeyPress(key)}
-                  className={`${rowIndex === 2 ? 'w-12' : 'w-10'} h-10 rounded-lg font-bold text-lg transition-all duration-200 transform active:scale-95 border ${
+                  className={`w-10 h-10 rounded-lg font-bold text-lg transition-all duration-200 transform active:scale-95 border ${
                     key === '⌫'
                       ? 'bg-red-600/80 hover:bg-red-500/80 text-white border-red-400/50 shadow-lg shadow-red-500/25'
                       : 'bg-gradient-to-br from-cyan-600/80 to-blue-600/80 hover:from-cyan-500/80 hover:to-blue-500/80 text-white border-cyan-400/50 shadow-lg shadow-cyan-500/25'
