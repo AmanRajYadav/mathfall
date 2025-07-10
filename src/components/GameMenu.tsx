@@ -1,6 +1,9 @@
 
 import React from 'react';
 import { Difficulty, GameStatistics } from '../types/game';
+import { Play, BarChart3, Settings, Trophy, Target, Zap, BookOpen } from 'lucide-react';
+import { Card, CardContent } from './ui/card';
+import { Button } from './ui/button';
 
 interface GameMenuProps {
   onStartGame: (difficulty: Difficulty) => void;
@@ -16,98 +19,149 @@ const GameMenu: React.FC<GameMenuProps> = ({
   statistics 
 }) => {
   return (
-    <div className="text-center text-cyan-400 max-w-4xl mx-auto px-4 sm:px-8">
-      <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 sm:mb-3 md:mb-4 bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
+    <div className="min-h-screen flex flex-col items-center justify-center p-8 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-16">
+        <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
           MATHFALL
         </h1>
-        <p className="text-sm sm:text-base md:text-lg text-slate-300 mb-1 sm:mb-2">🚀 Destroy falling math problems by typing the answers! 🔢</p>
-        <p className="text-xs sm:text-sm text-slate-400">Use your keyboard to save the universe from mathematical chaos</p>
+        <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
+          Destroy falling math problems by typing the answers and save the universe from mathematical chaos
+        </p>
       </div>
-      
-      <div className="mb-4 sm:mb-6 md:mb-8">
-        <h2 className="text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4 md:mb-6 text-white font-bold">Choose Your Challenge</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-          <button
-            onClick={() => onStartGame('easy')}
-            className="group bg-gradient-to-br from-green-600 to-emerald-700 hover:from-green-500 hover:to-emerald-600 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 rounded-2xl text-base sm:text-lg md:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 border border-green-400/20"
-          >
-            <div className="text-2xl mb-2">🟢 EASY</div>
-            <div className="text-sm font-normal text-green-100">
-              Simple operations<br/>
-              Relaxed pace<br/>
-              Perfect for beginners
-            </div>
-          </button>
-          
-          <button
-            onClick={() => onStartGame('medium')}
-            className="group bg-gradient-to-br from-yellow-600 to-orange-700 hover:from-yellow-500 hover:to-orange-600 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 rounded-2xl text-base sm:text-lg md:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/25 border border-yellow-400/20"
-          >
-            <div className="text-2xl mb-2">🟡 MEDIUM</div>
-            <div className="text-sm font-normal text-yellow-100">
-              Mixed operations<br/>
-              Moderate speed<br/>
-              Balanced challenge
-            </div>
-          </button>
-          
-          <button
-            onClick={() => onStartGame('hard')}
-            className="group bg-gradient-to-br from-red-600 to-pink-700 hover:from-red-500 hover:to-pink-600 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 rounded-2xl text-base sm:text-lg md:text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 border border-red-400/20"
-          >
-            <div className="text-2xl mb-2">🔴 HARD</div>
-            <div className="text-sm font-normal text-red-100">
-              Complex problems<br/>
-              High speed<br/>
-              Expert level
-            </div>
-          </button>
+
+      {/* Difficulty Selection */}
+      <div className="w-full max-w-4xl mb-16">
+        <h2 className="text-2xl font-semibold text-center mb-8 text-foreground">Choose Your Challenge</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Easy */}
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-emerald-200/20 bg-gradient-to-br from-emerald-50/5 to-emerald-100/10">
+            <CardContent className="p-8 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-emerald-600">EASY</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Simple operations<br/>
+                Relaxed pace<br/>
+                Perfect for beginners
+              </p>
+              <Button 
+                onClick={() => onStartGame('easy')}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Start Easy
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Medium */}
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-amber-200/20 bg-gradient-to-br from-amber-50/5 to-amber-100/10">
+            <CardContent className="p-8 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+                <Target className="w-6 h-6 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-amber-600">MEDIUM</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Mixed operations<br/>
+                Moderate speed<br/>
+                Balanced challenge
+              </p>
+              <Button 
+                onClick={() => onStartGame('medium')}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Start Medium
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Hard */}
+          <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-red-200/20 bg-gradient-to-br from-red-50/5 to-red-100/10">
+            <CardContent className="p-8 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-red-600">HARD</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Complex problems<br/>
+                High speed<br/>
+                Expert level
+              </p>
+              <Button 
+                onClick={() => onStartGame('hard')}
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Start Hard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
-      <div className="mb-4 sm:mb-6">
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 backdrop-blur-xl rounded-2xl p-3 sm:p-4 md:p-6 border border-white/10 shadow-2xl">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 text-white flex items-center justify-center gap-2">
-            <span className="text-2xl sm:text-3xl">📊</span>
-            Your Stats
+
+      {/* Statistics */}
+      <Card className="w-full max-w-4xl mb-8 border-border/50">
+        <CardContent className="p-8">
+          <h3 className="text-xl font-semibold mb-6 text-center flex items-center justify-center gap-2">
+            <BarChart3 className="w-5 h-5" />
+            Your Statistics
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/20 p-4 rounded-xl border border-yellow-400/20">
-              <div className="text-yellow-400 font-bold text-lg">{statistics.highScore.toLocaleString()}</div>
-              <div className="text-slate-300">🏆 High Score</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-yellow-100 flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="text-2xl font-bold text-yellow-600 mb-1">{statistics.highScore.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">High Score</div>
             </div>
-            <div className="bg-gradient-to-br from-green-500/10 to-green-600/20 p-4 rounded-xl border border-green-400/20">
-              <div className="text-green-400 font-bold text-lg">{statistics.bestStreak}</div>
-              <div className="text-slate-300">🔥 Best Streak</div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-orange-100 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="text-2xl font-bold text-orange-600 mb-1">{statistics.bestStreak}</div>
+              <div className="text-sm text-muted-foreground">Best Streak</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 p-4 rounded-xl border border-blue-400/20">
-              <div className="text-blue-400 font-bold text-lg">{statistics.accuracy}%</div>
-              <div className="text-slate-300">🎯 Accuracy</div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-blue-100 flex items-center justify-center">
+                <Target className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="text-2xl font-bold text-blue-600 mb-1">{statistics.accuracy}%</div>
+              <div className="text-sm text-muted-foreground">Accuracy</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/20 p-4 rounded-xl border border-purple-400/20">
-              <div className="text-purple-400 font-bold text-lg">{statistics.totalQuestionsAnswered}</div>
-              <div className="text-slate-300">📝 Questions</div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-100 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="text-2xl font-bold text-purple-600 mb-1">{statistics.totalQuestionsAnswered}</div>
+              <div className="text-sm text-muted-foreground">Questions</div>
             </div>
           </div>
-        </div>
-      </div>
-      
-      <div className="flex justify-center gap-6">
-        <button
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button
           onClick={onShowStatistics}
-          className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 px-6 py-3 rounded-xl transition-all duration-300 font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-blue-500/25"
+          variant="outline"
+          size="lg"
+          className="px-8"
         >
-          <span className="text-xl">📈</span>
-          STATISTICS
-        </button>
-        <button
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Detailed Statistics
+        </Button>
+        <Button
           onClick={onShowSettings}
-          className="bg-gradient-to-r from-gray-600 to-slate-700 hover:from-gray-500 hover:to-slate-600 px-6 py-3 rounded-xl transition-all duration-300 font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-gray-500/25"
+          variant="outline"
+          size="lg"
+          className="px-8"
         >
-          <span className="text-xl">⚙️</span>
-          SETTINGS
-        </button>
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
+        </Button>
       </div>
     </div>
   );
