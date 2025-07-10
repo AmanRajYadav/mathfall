@@ -51,16 +51,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       ctx.fillStyle = overlayGradient;
       ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
       
-      // Glowing game over text
-      const fontSize = Math.min(48, canvasSize.width / 20);
-      ctx.font = `bold ${fontSize}px system-ui`;
+      // Glowing game over text - double size on mobile
+      const isMobile = canvasSize.width < 768;
+      const gameOverFontSize = Math.min(48, canvasSize.width / 20) * (isMobile ? 2 : 1);
+      const scoreFontSize = (gameOverFontSize / 2) * (isMobile ? 2 : 1);
+      
+      ctx.font = `bold ${gameOverFontSize}px system-ui`;
       ctx.fillStyle = '#ff4757';
       ctx.textAlign = 'center';
       ctx.shadowColor = '#ff4757';
       ctx.shadowBlur = 30;
       ctx.fillText('GAME OVER', canvasSize.width/2, canvasSize.height/2 - 50);
       
-      ctx.font = `${fontSize/2}px system-ui`;
+      ctx.font = `${scoreFontSize}px system-ui`;
       ctx.fillStyle = '#70a1ff';
       ctx.shadowBlur = 15;
       ctx.fillText(`Final Score: ${gameState.score.toLocaleString()}`, canvasSize.width/2, canvasSize.height/2);
@@ -163,8 +166,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       ctx.shadowBlur = 0;
     }
 
-    // Enhanced problems with dynamic styling
-    const problemFontSize = Math.min(20, canvasSize.width / 40);
+    // Enhanced problems with dynamic styling - double size on mobile
+    const isMobile = canvasSize.width < 768;
+    const problemFontSize = Math.min(20, canvasSize.width / 40) * (isMobile ? 2 : 1);
     ctx.font = `bold ${problemFontSize}px system-ui`;
     gameState.problems.forEach(problem => {
       const isTarget = problem === gameState.targetProblem;

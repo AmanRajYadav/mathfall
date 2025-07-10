@@ -117,9 +117,13 @@ export const useGameLogic = () => {
     const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
     const speedBoost = 1 + (waveProgress * 0.03);
     
+    // Slow down by 30% on mobile (detect mobile by checking if window width < 768)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const mobileSpeedMultiplier = isMobile ? 0.7 : 1;
+    
     const updatedProblems = currentState.problems.map(problem => ({
       ...problem,
-      y: problem.y + (problem.speed * speedBoost)
+      y: problem.y + (problem.speed * speedBoost * mobileSpeedMultiplier)
     }));
 
     const problemsAtBottom = updatedProblems.filter(p => p.y > 550);
