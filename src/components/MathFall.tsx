@@ -41,6 +41,11 @@ const MathFall: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(gameStateRef.current);
   const [starField, setStarField] = useState<Array<{x: number, y: number, speed: number}>>([]);
 
+  // Initialize menu music when component mounts
+  useEffect(() => {
+    playBackgroundMusic(1, 'menu');
+  }, []);
+
   // Handle window resize for fullscreen canvas
   useEffect(() => {
     const updateCanvasSize = () => {
