@@ -152,10 +152,19 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
     case 'fractions':
       const generateFraction = (diff: Difficulty, wave: number) => {
         if (diff === 'easy') {
-          const numerator = Math.floor(Math.random() * (4 + Math.floor(wave / 2))) + 1;
-          const denominator = Math.floor(Math.random() * (6 + Math.floor(wave / 2))) + 2;
-          if (numerator >= denominator) return generateFraction(diff, wave);
-          return { numerator, denominator, decimal: numerator / denominator };
+          // Easy mode: Simple fractions until wave 15, then complex ones
+          if (wave < 15) {
+            // Simple fractions with equal denominators or easy calculations
+            const numerator = Math.floor(Math.random() * (4 + Math.floor(wave / 3))) + 1;
+            const denominator = Math.floor(Math.random() * (6 + Math.floor(wave / 3))) + 2;
+            if (numerator >= denominator) return generateFraction(diff, wave);
+            return { numerator, denominator, decimal: numerator / denominator };
+          } else {
+            // Complex fractions after wave 15
+            const numerator = Math.floor(Math.random() * (8 + Math.floor(wave / 2))) + 1;
+            const denominator = Math.floor(Math.random() * (10 + Math.floor(wave / 2))) + 2;
+            return { numerator, denominator, decimal: numerator / denominator };
+          }
         } else if (diff === 'medium') {
           const numerator = Math.floor(Math.random() * (8 + wave)) + 1;
           const denominator = Math.floor(Math.random() * (10 + wave)) + 2;
@@ -169,8 +178,13 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       
       const frac1 = generateFraction(difficulty, waveNumber);
       
-      if (Math.random() < 0.6 && waveNumber > 2) {
-        // Addition of fractions
+      // Fraction addition only after wave 15 in easy mode
+      if (difficulty === 'easy' && waveNumber < 15) {
+        // Simple fraction to decimal conversion only
+        text = `${frac1.numerator}/${frac1.denominator}`;
+        answer = Math.round(frac1.decimal * 100) / 100;
+      } else if (Math.random() < 0.6 && waveNumber > 2) {
+        // Addition of fractions (for medium/hard or easy after wave 15)
         const frac2 = generateFraction(difficulty, waveNumber);
         text = `${frac1.numerator}/${frac1.denominator} + ${frac2.numerator}/${frac2.denominator}`;
         const result = frac1.decimal + frac2.decimal;
@@ -384,14 +398,39 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
   
   // Problem type distribution based on wave - progressive introduction
   const getProblemsForWave = (wave: number): Array<'addition' | 'subtraction' | 'multiplication' | 'division' | 'exponents' | 'roots' | 'fractions' | 'decimals' | 'complex'> => {
-    if (wave === 1) return ['addition', 'subtraction'];
-    if (wave === 2) return ['addition', 'subtraction', 'multiplication'];
-    if (wave === 3) return ['addition', 'subtraction', 'multiplication', 'division'];
-    if (wave === 4) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents'];
-    if (wave === 5) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots'];
-    if (wave === 6) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals'];
-    if (wave === 7) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions'];
-    return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions', 'complex'];
+    if (difficulty === 'easy') {
+      // Easy mode: Much slower progression, reduced complexity until wave 10
+      if (wave === 1) return ['addition', 'subtraction'];
+      if (wave === 2) return ['addition', 'subtraction'];
+      if (wave === 3) return ['addition', 'subtraction', 'multiplication'];
+      if (wave === 4) return ['addition', 'subtraction', 'multiplication'];
+      if (wave === 5) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 6) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 7) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 8) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 9) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 10) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 11) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents'];
+      if (wave === 12) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents'];
+      if (wave === 13) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals'];
+      if (wave === 14) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals'];
+      if (wave === 15) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions'];
+      if (wave === 16) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions'];
+      if (wave === 17) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions', 'roots'];
+      if (wave === 18) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions', 'roots'];
+      if (wave === 19) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions', 'roots'];
+      return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'decimals', 'fractions', 'roots', 'complex'];
+    } else {
+      // Medium/Hard mode: Original progression
+      if (wave === 1) return ['addition', 'subtraction'];
+      if (wave === 2) return ['addition', 'subtraction', 'multiplication'];
+      if (wave === 3) return ['addition', 'subtraction', 'multiplication', 'division'];
+      if (wave === 4) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents'];
+      if (wave === 5) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots'];
+      if (wave === 6) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals'];
+      if (wave === 7) return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions'];
+      return ['addition', 'subtraction', 'multiplication', 'division', 'exponents', 'roots', 'decimals', 'fractions', 'complex'];
+    }
   };
   
   const availableTypes = getProblemsForWave(waveNumber);
