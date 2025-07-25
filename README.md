@@ -1,73 +1,112 @@
-# Welcome to your Lovable project
+# MathFall - Retro Arcade Math Game
 
-## Project info
+A retro-futuristic arcade game where you destroy falling math problems! Built with React, TypeScript, and Vite.
 
-**URL**: https://lovable.dev/projects/7d022414-d66d-4afc-9337-cc394e22a53a
+## 🎮 Game Features
 
-## How can I edit this code?
+- **Retro Synthwave Aesthetic**: Immerse yourself in a neon-lit arcade experience
+- **Progressive Difficulty**: Math problems get harder as you advance
+- **Multiple Game Modes**: Different difficulty levels and game types
+- **Statistics Tracking**: Monitor your progress and high scores
+- **Mobile Responsive**: Play on desktop or mobile devices
+- **Customizable Settings**: Adjust game speed, sound, and visual effects
 
-There are several ways of editing your application.
+## 🚀 Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7d022414-d66d-4afc-9337-cc394e22a53a) and start prompting.
+- Node.js (version 18 or higher)
+- npm or yarn
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository:
+```bash
+git clone https://github.com/amanrajyadav/mathfall.git
+cd mathfall
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Install dependencies:
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open your browser and navigate to `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+- `npm run deploy` - Build and prepare for deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🎯 How to Play
 
-## What technologies are used for this project?
+1. **Objective**: Destroy falling math problems before they reach the bottom
+2. **Controls**: 
+   - Use the number pad to input answers
+   - Press Enter or click the submit button
+   - Use arrow keys or mouse to navigate
+3. **Scoring**: Earn points for correct answers and speed
+4. **Progression**: Difficulty increases as you advance through levels
 
-This project is built with:
+## 🛠️ Tech Stack
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Build Tool**: Vite
+- **State Management**: React Hooks
+- **Routing**: React Router DOM
+- **Icons**: Lucide React
+- **Charts**: Recharts for statistics
 
-## How can I deploy this project?
+## 📱 Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/7d022414-d66d-4afc-9337-cc394e22a53a) and click on Share -> Publish.
+This project can be deployed to various platforms:
 
-## Can I connect a custom domain to my Lovable project?
+### GitHub Pages
+```bash
+npm run build
+# Deploy the dist folder to GitHub Pages
+```
 
-Yes, you can!
+### Vercel
+```bash
+npm install -g vercel
+vercel
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Netlify
+```bash
+npm run build
+# Deploy the dist folder to Netlify
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**amanrajyadav** - [GitHub](https://github.com/amanrajyadav)
+
+## 🙏 Acknowledgments
+
+- Inspired by classic arcade games
+- Built with modern web technologies
+- Special thanks to the open source community
