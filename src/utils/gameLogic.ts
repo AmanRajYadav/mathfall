@@ -280,26 +280,57 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   const textWidth = text.length * 12;
   const maxX = canvasWidth - textWidth - 20;
   
-  // Determine problem personality and appearance based on complexity and difficulty
+  // Progressive personality system - all personalities available in easy mode
+  // Difficulty increases as waves progress: Medium problems after wave 5, Hard problems after wave 9
   let personality: 'friendly' | 'neutral' | 'aggressive' | 'boss';
   let size: 'small' | 'medium' | 'large' | 'giant';
   let health: number = 1;
   
-  // Aggressive/boss personalities mainly for hard difficulty
-  if (difficulty === 'hard') {
+  // Calculate effective difficulty based on wave progression
+  const getEffectiveDifficulty = (baseDifficulty: Difficulty, wave: number): 'easy' | 'medium' | 'hard' => {
+    if (baseDifficulty === 'hard') return 'hard';
+    if (baseDifficulty === 'medium') return 'medium';
+    
+    // Easy mode progression: Easy → Medium (wave 5+) → Hard (wave 9+)
+    if (wave >= 9) return 'hard';
+    if (wave >= 5) return 'medium';
+    return 'easy';
+  };
+  
+  const effectiveDifficulty = getEffectiveDifficulty(difficulty, waveNumber);
+  
+  if (effectiveDifficulty === 'hard') {
+    // Hard difficulty - all personalities available
     const complexityScore = (type === 'complex' ? 3 : type === 'exponents' || type === 'roots' ? 2 : 1) + 
                            (waveNumber > 3 ? 2 : waveNumber > 1 ? 1 : 0);
     
-    // Lower thresholds so we see boss/aggressive problems earlier
-    if (complexityScore >= 4 || (waveNumber > 5 && Math.random() < 0.3)) {
+    if (complexityScore >= 3 || (waveNumber > 3 && Math.random() < 0.4)) {
       personality = 'boss';
       size = 'giant';
       health = 3;
-    } else if (complexityScore >= 2 || (waveNumber > 2 && Math.random() < 0.4)) {
+    } else if (complexityScore >= 1 || (waveNumber > 1 && Math.random() < 0.5)) {
       personality = 'aggressive';
       size = 'large';
       health = 2;
-    } else if (Math.random() < 0.3) {
+    } else if (Math.random() < 0.4) {
+      personality = 'neutral';
+      size = 'medium';
+      health = 1;
+    } else {
+      personality = 'friendly';
+      size = 'small';
+      health = 1;
+    }
+  } else if (effectiveDifficulty === 'medium') {
+    // Medium difficulty - aggressive and neutral personalities
+    const complexityScore = (type === 'exponents' || type === 'roots' ? 1 : 0) + 
+                           (waveNumber > 3 ? 1 : 0);
+    
+    if (complexityScore >= 1 || (waveNumber > 4 && Math.random() < 0.4)) {
+      personality = 'aggressive';
+      size = 'large';
+      health = 2;
+    } else if (Math.random() < 0.5) {
       personality = 'neutral';
       size = 'medium';
       health = 1;
@@ -309,11 +340,8 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
       health = 1;
     }
   } else {
-    // Easy/medium problems are mostly friendly or neutral
-    const complexityScore = (type === 'complex' ? 2 : type === 'exponents' || type === 'roots' ? 1 : 0) + 
-                           (waveNumber > 7 ? 1 : 0);
-    
-    if (complexityScore >= 2) {
+    // Easy difficulty - mostly friendly with some neutral
+    if (waveNumber > 2 && Math.random() < 0.4) {
       personality = 'neutral';
       size = 'medium';
       health = 1;
@@ -324,14 +352,16 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
     }
   }
   
-  // Random variation for diversity - but respect difficulty constraints
-  if (Math.random() < 0.2) { // Increased from 0.1 to 0.2 for more variety
-    if (difficulty === 'hard') {
+  // Enhanced random variation for more diversity
+  if (Math.random() < 0.35) { // Increased variation
+    if (effectiveDifficulty === 'hard') {
       const personalities: Array<'friendly' | 'neutral' | 'aggressive' | 'boss'> = ['aggressive', 'boss', 'neutral'];
-      if (waveNumber > 3) personalities.push('boss'); // Earlier boss appearance
+      if (waveNumber > 2) personalities.push('boss'); // Earlier boss appearance
+      personality = personalities[Math.floor(Math.random() * personalities.length)];
+    } else if (effectiveDifficulty === 'medium') {
+      const personalities: Array<'friendly' | 'neutral' | 'aggressive'> = ['aggressive', 'neutral'];
       personality = personalities[Math.floor(Math.random() * personalities.length)];
     } else {
-      // Easy/medium can only be friendly or neutral
       const personalities: Array<'friendly' | 'neutral'> = ['friendly', 'neutral'];
       personality = personalities[Math.floor(Math.random() * personalities.length)];
     }
