@@ -1,15 +1,34 @@
-# MathFall - Retro Arcade Math Game
+# 🚀 MathFall - Synthwave Arcade Math Game
 
-A retro-futuristic arcade game where you destroy falling math problems! Built with React, TypeScript, and Vite.
+A fast-paced, visually stunning math game where you destroy falling problems by typing the correct answers. Built with React, TypeScript, and modern web technologies.
 
 ## 🎮 Game Features
 
-- **Retro Synthwave Aesthetic**: Immerse yourself in a neon-lit arcade experience
-- **Progressive Difficulty**: Math problems get harder as you advance
-- **Multiple Game Modes**: Different difficulty levels and game types
-- **Statistics Tracking**: Monitor your progress and high scores
-- **Mobile Responsive**: Play on desktop or mobile devices
-- **Customizable Settings**: Adjust game speed, sound, and visual effects
+### Core Gameplay
+- **Dynamic Math Problems**: Addition, subtraction, multiplication, division, exponents, roots, fractions, decimals, and complex equations
+- **Progressive Difficulty**: Three difficulty levels (Easy, Medium, Hard) with adaptive wave progression
+- **Laser Targeting System**: Animated laser beams track your target with particle effects
+- **Question Personalities**: Problems have personalities with unique emojis and behaviors:
+  - 😊 **Friendly**: Easy, welcoming problems
+  - 🤔 **Neutral**: Standard math challenges  
+  - 😠 **Aggressive**: Tough problems with special effects (Hard mode)
+  - 👑 **Boss**: Ultimate challenges with animated backgrounds (Hard mode)
+
+### Power-Up System
+Collect 6 different power-ups that spawn after solving problems:
+- ⏰ **Time Warp**: Slows down falling problems
+- 💥 **Nuclear Strike**: Instantly destroys all problems on screen
+- 🛡️ **Force Shield**: Protects from missed problems
+- ⚡ **Rapid Fire**: Allows instant problem solving
+- 💎 **Score Multiplier**: Doubles your score
+- ❄️ **Freeze Ray**: Freezes all problems in place
+
+### Visual & Audio
+- **Synthwave Aesthetic**: Neon colors, gradients, and retro-futuristic design
+- **Dynamic Music**: Wave-based soundtrack with synthesized fallbacks
+- **Multiple Rocket Types**: 5 different rockets with unique properties
+- **Enhanced Particle Effects**: Personality-based explosions and visual feedback
+- **Responsive Design**: Optimized for desktop and mobile devices
 
 ## 🚀 Getting Started
 
@@ -49,44 +68,67 @@ npm run dev
 
 ## 🎯 How to Play
 
-1. **Objective**: Destroy falling math problems before they reach the bottom
-2. **Controls**: 
-   - Use the number pad to input answers
-   - Press Enter or click the submit button
-   - Use arrow keys or mouse to navigate
-3. **Scoring**: Earn points for correct answers and speed
-4. **Progression**: Difficulty increases as you advance through levels
+1. **Select Difficulty**: Choose Easy, Medium, or Hard mode
+2. **Type Answers**: Use keyboard to input solutions to falling math problems
+3. **Collect Power-ups**: Move your rocket with arrow keys to collect power-ups
+4. **Survive Waves**: Complete waves by solving all problems before they reach the bottom
+5. **Beat Your High Score**: Track your progress and improve your math skills!
 
-## 🛠️ Tech Stack
+### Controls
+- **0-9**: Type math answers
+- **Backspace**: Delete last digit
+- **Arrow Keys/WASD**: Move rocket to collect power-ups
+- **Space**: Start game / Restart
+- **ESC**: Return to menu
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Build Tool**: Vite
-- **State Management**: React Hooks
-- **Routing**: React Router DOM
-- **Icons**: Lucide React
-- **Charts**: Recharts for statistics
+## 📊 Game Statistics
+
+Track your progress with comprehensive statistics:
+- High Score and Best Streak
+- Accuracy Percentage
+- Total Questions Answered
+- Time Played
+- Current Streak Counter
+
+## 🎨 Customization
+
+### Rocket Selection
+Choose from 5 different rockets in the settings:
+- **Classic**: Balanced stats
+- **Stealth**: Angular design with stealth capabilities
+- **Tank**: Heavy armor with robust design
+- **Speed**: Sleek and fast
+- **Plasma**: Energy-based with special effects
+
+### Audio Settings
+- Adjustable music volume
+- Music on/off toggle
+- Dynamic wave-based soundtrack
+- Synthesized fallback music system
+
+## 🛠️ Technical Features
+
+### Built With
+- **React 18** with TypeScript for type-safe development
+- **Tailwind CSS** for responsive styling and animations
+- **Canvas API** for smooth 60fps game rendering
+- **Web Audio API** for dynamic music and sound effects
+- **Vite** for fast development and optimized builds
+
+### Architecture
+- **Component-based Design**: Modular React components for maintainability
+- **Custom Hooks**: Reusable logic for mobile detection and game state
+- **Type Safety**: Full TypeScript implementation with strict types
+- **Performance Optimized**: Efficient collision detection and state management
 
 ## 📱 Deployment
 
-This project can be deployed to various platforms:
+The project includes GitHub Actions workflow for automatic deployment to GitHub Pages on every push to main branch.
 
-### GitHub Pages
+### Manual Deployment
 ```bash
 npm run build
-# Deploy the dist folder to GitHub Pages
-```
-
-### Vercel
-```bash
-npm install -g vercel
-vercel
-```
-
-### Netlify
-```bash
-npm run build
-# Deploy the dist folder to Netlify
+# The dist folder is ready for deployment
 ```
 
 ## 🤝 Contributing
@@ -101,12 +143,14 @@ npm run build
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
+## 🌟 Credits
 
-**amanrajyadav** - [GitHub](https://github.com/amanrajyadav)
+- **Powered by**: Fluence
+- **Created by**: Aman Raj Yadav
+- **Design**: Synthwave/Retrowave aesthetic with modern web technologies
 
-## 🙏 Acknowledgments
+---
 
-- Inspired by classic arcade games
-- Built with modern web technologies
-- Special thanks to the open source community
+**Play MathFall**: [Live Demo](https://amanrajyadav.github.io/mathfall/)
+
+Made with ❤️ for math enthusiasts everywhere!
