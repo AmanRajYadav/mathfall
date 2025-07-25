@@ -425,7 +425,7 @@ const MathFall: React.FC = () => {
         
         {/* React UI Overlays */}
         {gameState.gameStatus === 'menu' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md">
             <GameMenu
               onStartGame={startGame}
               onShowStatistics={handleShowStatistics}
