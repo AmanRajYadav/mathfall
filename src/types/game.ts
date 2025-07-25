@@ -72,6 +72,8 @@ export interface RocketConfig {
   engineColor: string;
   speed: number;
   fireRate: number;
+  useGif?: boolean;
+  gifPath?: string;
 }
 
 export interface VoiceSettings {

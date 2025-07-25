@@ -4,13 +4,15 @@ export const rocketConfigs: Record<RocketType, RocketConfig> = {
   classic: {
     id: 'classic',
     name: '🚀 Classic Rocket',
-    description: 'The original blue rocket with balanced stats',
+    description: 'The original animated rocket with balanced stats',
     color: '#70a1ff',
     size: 1.0,
     laserColor: '#00ff96',
     engineColor: '#ff6b6b',
     speed: 1.0,
-    fireRate: 1.0
+    fireRate: 1.0,
+    useGif: true,
+    gifPath: '/rocket-moving.gif'
   },
   stealth: {
     id: 'stealth',

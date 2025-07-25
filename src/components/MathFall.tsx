@@ -413,6 +413,12 @@ const MathFall: React.FC = () => {
               const explosionPromises = updatedProblems.map(problem => 
                 createExplosion(problem.x + 25, problem.y, false, problem.personality)
               );
+              // Count destroyed problems for wave completion and update statistics
+              newProblemsHandled += updatedProblems.length;
+              newStats = updateStatistics(currentState.statistics, {
+                totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + updatedProblems.length,
+                correctAnswers: currentState.statistics.correctAnswers + updatedProblems.length
+              });
             } else if (powerUp.duration > 0) {
               // Add timed effect (prevent duplicates)
               const existingPowerUp = newActivePowerUps.find(ap => ap.type === powerUp.type);
@@ -524,8 +530,8 @@ const MathFall: React.FC = () => {
         targetProblem: state.targetProblem && remainingProblems.find(p => p.id === state.targetProblem?.id) || null
       }));
 
-      // Check wave completion if problems were missed
-      if (problemsAtBottom.length > 0) {
+      // Check wave completion if problems were missed or destroyed by power-up
+      if (problemsAtBottom.length > 0 || destroyAllActivated) {
         setTimeout(() => {
           checkWaveCompletion();
         }, 100);

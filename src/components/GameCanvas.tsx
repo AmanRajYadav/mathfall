@@ -13,6 +13,18 @@ interface GameCanvasProps {
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSize, isGameOver = false }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rocketImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Load rocket GIF image
+  useEffect(() => {
+    if (!rocketImageRef.current) {
+      const img = new Image();
+      img.src = '/rocket-moving.gif';
+      img.onload = () => {
+        rocketImageRef.current = img;
+      };
+    }
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -140,75 +152,107 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       const rocketConfig = getRocketConfig(gameState.selectedRocket);
       const rocketSize = 25 * rocketConfig.size;
       
-      // Rocket glow aura
-      const rocketGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, rocketSize + 10);
-      rocketGradient.addColorStop(0, `${rocketConfig.color}80`);
-      rocketGradient.addColorStop(0.7, `${rocketConfig.color}40`);
-      rocketGradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = rocketGradient;
-      ctx.fillRect(shipX - rocketSize - 10, shipY - rocketSize - 10, (rocketSize + 10) * 2, (rocketSize + 10) * 2);
+      // Use GIF for classic rocket, draw others normally
+      if (gameState.selectedRocket === 'classic' && rocketImageRef.current) {
+        // Draw animated GIF rocket
+        const img = rocketImageRef.current;
+        const gifWidth = rocketSize * 2;
+        const gifHeight = rocketSize * 2;
+        
+        // Rocket glow aura
+        const rocketGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, rocketSize + 10);
+        rocketGradient.addColorStop(0, `${rocketConfig.color}80`);
+        rocketGradient.addColorStop(0.7, `${rocketConfig.color}40`);
+        rocketGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = rocketGradient;
+        ctx.fillRect(shipX - rocketSize - 10, shipY - rocketSize - 10, (rocketSize + 10) * 2, (rocketSize + 10) * 2);
+        
+        // Draw the GIF rocket
+        ctx.drawImage(img, shipX - gifWidth/2, shipY - gifHeight/2, gifWidth, gifHeight);
+        
+        // Enhanced engine trails for GIF rocket
+        const trailIntensity = rocketConfig.speed;
+        ctx.fillStyle = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+        ctx.shadowColor = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+        ctx.shadowBlur = 10 * trailIntensity;
+        
+        const trailWidth = rocketSize/4 * trailIntensity;
+        const trailHeight = rocketSize/2 * trailIntensity;
+        ctx.fillRect(shipX - trailWidth, shipY + gifHeight/2, trailWidth * 0.8, trailHeight);
+        ctx.fillRect(shipX + trailWidth * 0.2, shipY + gifHeight/2, trailWidth * 0.8, trailHeight);
+        ctx.shadowBlur = 0;
+      } else {
+        // Original drawn rocket for other types
+        // Rocket glow aura
+        const rocketGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, rocketSize + 10);
+        rocketGradient.addColorStop(0, `${rocketConfig.color}80`);
+        rocketGradient.addColorStop(0.7, `${rocketConfig.color}40`);
+        rocketGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = rocketGradient;
+        ctx.fillRect(shipX - rocketSize - 10, shipY - rocketSize - 10, (rocketSize + 10) * 2, (rocketSize + 10) * 2);
 
-      // Main rocket body
-      ctx.fillStyle = rocketConfig.color;
-      ctx.shadowColor = rocketConfig.color;
-      ctx.shadowBlur = 15;
-      ctx.beginPath();
-      ctx.moveTo(shipX, shipY - rocketSize/2);
-      ctx.lineTo(shipX - rocketSize/2, shipY + rocketSize);
-      ctx.lineTo(shipX + rocketSize/2, shipY + rocketSize);
-      ctx.closePath();
-      ctx.fill();
-
-      // Rocket-specific details
-      if (gameState.selectedRocket === 'stealth') {
-        // Stealth - angular design
-        ctx.fillStyle = '#444444';
-        ctx.shadowBlur = 8;
+        // Main rocket body
+        ctx.fillStyle = rocketConfig.color;
+        ctx.shadowColor = rocketConfig.color;
+        ctx.shadowBlur = 15;
         ctx.beginPath();
-        ctx.moveTo(shipX - rocketSize/3, shipY);
-        ctx.lineTo(shipX + rocketSize/3, shipY);
-        ctx.lineTo(shipX, shipY - rocketSize/3);
+        ctx.moveTo(shipX, shipY - rocketSize/2);
+        ctx.lineTo(shipX - rocketSize/2, shipY + rocketSize);
+        ctx.lineTo(shipX + rocketSize/2, shipY + rocketSize);
         ctx.closePath();
         ctx.fill();
-      } else if (gameState.selectedRocket === 'heavy') {
-        // Heavy - wider, more robust
-        ctx.fillStyle = rocketConfig.color;
-        ctx.shadowBlur = 12;
-        ctx.fillRect(shipX - rocketSize/1.5, shipY, rocketSize * 1.3, rocketSize/3);
-      } else if (gameState.selectedRocket === 'speed') {
-        // Speed - sleek lines
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.moveTo(shipX - rocketSize/4, shipY - rocketSize/4);
-        ctx.lineTo(shipX + rocketSize/4, shipY - rocketSize/4);
-        ctx.stroke();
-      } else if (gameState.selectedRocket === 'plasma') {
-        // Plasma - energy effects
-        const time = Date.now() * 0.01;
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time) * 0.3 + 0.7})`;
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 20;
-        ctx.fillRect(shipX - 3, shipY - rocketSize/3, 6, rocketSize/2);
-      }
 
-      // Enhanced engine trails based on rocket type
-      const trailIntensity = rocketConfig.speed;
-      ctx.fillStyle = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
-      ctx.shadowColor = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
-      ctx.shadowBlur = 10 * trailIntensity;
-      
-      const trailWidth = rocketSize/4 * trailIntensity;
-      const trailHeight = rocketSize/2 * trailIntensity;
-      ctx.fillRect(shipX - trailWidth, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
-      ctx.fillRect(shipX + trailWidth * 0.2, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
-      
-      // Cockpit
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = 5;
-      ctx.fillRect(shipX - rocketSize/8, shipY + rocketSize/4, rocketSize/4, rocketSize/3);
-      ctx.shadowBlur = 0;
+        // Rocket-specific details
+        if (gameState.selectedRocket === 'stealth') {
+          // Stealth - angular design
+          ctx.fillStyle = '#444444';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(shipX - rocketSize/3, shipY);
+          ctx.lineTo(shipX + rocketSize/3, shipY);
+          ctx.lineTo(shipX, shipY - rocketSize/3);
+          ctx.closePath();
+          ctx.fill();
+        } else if (gameState.selectedRocket === 'tank') {
+          // Tank - wider, more robust
+          ctx.fillStyle = rocketConfig.color;
+          ctx.shadowBlur = 12;
+          ctx.fillRect(shipX - rocketSize/1.5, shipY, rocketSize * 1.3, rocketSize/3);
+        } else if (gameState.selectedRocket === 'speed') {
+          // Speed - sleek lines
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(shipX - rocketSize/4, shipY - rocketSize/4);
+          ctx.lineTo(shipX + rocketSize/4, shipY - rocketSize/4);
+          ctx.stroke();
+        } else if (gameState.selectedRocket === 'plasma') {
+          // Plasma - energy effects
+          const time = Date.now() * 0.01;
+          ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time) * 0.3 + 0.7})`;
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 20;
+          ctx.fillRect(shipX - 3, shipY - rocketSize/3, 6, rocketSize/2);
+        }
+
+        // Enhanced engine trails based on rocket type
+        const trailIntensity = rocketConfig.speed;
+        ctx.fillStyle = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+        ctx.shadowColor = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+        ctx.shadowBlur = 10 * trailIntensity;
+        
+        const trailWidth = rocketSize/4 * trailIntensity;
+        const trailHeight = rocketSize/2 * trailIntensity;
+        ctx.fillRect(shipX - trailWidth, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
+        ctx.fillRect(shipX + trailWidth * 0.2, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
+        
+        // Cockpit
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 5;
+        ctx.fillRect(shipX - rocketSize/8, shipY + rocketSize/4, rocketSize/4, rocketSize/3);
+        ctx.shadowBlur = 0;
+      }
     }
 
     // Enhanced problems with personality-based styling

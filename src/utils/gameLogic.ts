@@ -277,8 +277,10 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   
   const baseSpeed = (0.25 + (waveNumber * 0.06) + (Math.random() * 0.12)) * 0.7;
   const speed = baseSpeed * speedMultiplier;
-  const textWidth = text.length * 12;
-  const maxX = canvasWidth - textWidth - 20;
+  
+  // More accurate text width calculation (accounting for emoji and different character widths)
+  const textWidth = text.length * 14; // Increased multiplier for better accuracy
+  const maxX = Math.max(50, canvasWidth - textWidth - 40); // Ensure minimum 50px margin
   
   // Progressive personality system - all personalities available in easy mode
   // Difficulty increases as waves progress: Medium problems after wave 5, Hard problems after wave 9
@@ -397,7 +399,7 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
     id: `problem_${problemIdCounter++}`,
     text: finalText,
     answer,
-    x: Math.random() * Math.max(maxX, 50) + 10,
+    x: Math.max(20, Math.min(maxX, Math.random() * maxX + 20)), // Ensure problems stay within bounds
     y: -30,
     speed,
     difficulty,
@@ -465,11 +467,40 @@ export const generateWave = (waveNumber: number, difficulty: Difficulty, canvasW
   
   const availableTypes = getProblemsForWave(waveNumber);
   
+  // Improved spacing to prevent overlapping
+  const minSpacing = Math.max(60, spacing); // Minimum spacing between problems
+  const usedPositions: Array<{x: number, y: number}> = [];
+  
+  // Calculate maxX for positioning (using average text width)
+  const avgTextWidth = 100; // Average text width for positioning
+  const maxX = Math.max(50, canvasWidth - avgTextWidth - 40);
+  
   for (let i = 0; i < totalProblems; i++) {
     const typeIndex = Math.floor(Math.random() * availableTypes.length);
     const type = availableTypes[typeIndex];
     const problem = generateProblem(type, waveNumber, difficulty, canvasWidth);
-    problem.y = -50 - (i * spacing);
+    
+    // Calculate Y position with better spacing
+    problem.y = -50 - (i * minSpacing);
+    
+    // Adjust X position to avoid overlapping with existing problems
+    let attempts = 0;
+    let finalX = problem.x;
+    
+    while (attempts < 10) {
+      const overlapping = usedPositions.some(pos => 
+        Math.abs(pos.x - finalX) < 80 && Math.abs(pos.y - problem.y) < minSpacing
+      );
+      
+      if (!overlapping) break;
+      
+      // Try a new X position
+      finalX = Math.max(20, Math.min(maxX, Math.random() * maxX + 20));
+      attempts++;
+    }
+    
+    problem.x = finalX;
+    usedPositions.push({x: finalX, y: problem.y});
     problems.push(problem);
   }
   
