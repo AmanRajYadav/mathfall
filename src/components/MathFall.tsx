@@ -146,6 +146,23 @@ const MathFall: React.FC = () => {
       .sort((a, b) => b.y - a.y)[0] || null;
   }, []);
 
+  // Vibration utility function
+  const triggerVibration = useCallback((intensity: 'light' | 'medium' | 'heavy' = 'medium') => {
+    if ('vibrate' in navigator) {
+      switch (intensity) {
+        case 'light':
+          navigator.vibrate(50);
+          break;
+        case 'medium':
+          navigator.vibrate(100);
+          break;
+        case 'heavy':
+          navigator.vibrate([100, 50, 100]);
+          break;
+      }
+    }
+  }, []);
+
   const createExplosion = useCallback((x: number, y: number, isStreak = false, personality?: string) => {
     const particles: Particle[] = [];
     
@@ -201,6 +218,12 @@ const MathFall: React.FC = () => {
         if (checkAnswer(targetProblem, newInput)) {
           // Correct answer - destroy problem
           playSound('destroy');
+          
+          // Trigger vibration based on problem personality
+          const vibrationIntensity = targetProblem.personality === 'boss' ? 'heavy' : 
+                                   targetProblem.personality === 'aggressive' ? 'medium' : 'light';
+          triggerVibration(vibrationIntensity);
+          
           const isStreak = currentState.statistics.currentStreak >= 5;
           createExplosion(targetProblem.x + 50, targetProblem.y + 15, isStreak, targetProblem.personality);
           
@@ -278,7 +301,7 @@ const MathFall: React.FC = () => {
         targetProblem
       }));
     }
-  }, [findTargetProblem, createExplosion, updateGameState, checkWaveCompletion]);
+  }, [findTargetProblem, createExplosion, updateGameState, checkWaveCompletion, triggerVibration]);
 
   const handleMobileKeyPress = useCallback((key: string) => {
     const currentState = gameStateRef.current;
@@ -407,9 +430,10 @@ const MathFall: React.FC = () => {
           }
         });
         
-        // Play sound only once for collected power-ups
+        // Play sound and vibration for collected power-ups
         if (collectedAny) {
           playSound('destroy');
+          triggerVibration('light'); // Light vibration for power-up collection
         }
       }
 
@@ -516,7 +540,7 @@ const MathFall: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [updateGameState, canvasSize, checkWaveCompletion, createExplosion]);
+  }, [updateGameState, canvasSize, checkWaveCompletion, createExplosion, triggerVibration]);
 
   // Handle space key for menu/restart
   useEffect(() => {

@@ -274,19 +274,24 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   // Aggressive/boss personalities mainly for hard difficulty
   if (difficulty === 'hard') {
     const complexityScore = (type === 'complex' ? 3 : type === 'exponents' || type === 'roots' ? 2 : 1) + 
-                           (waveNumber > 5 ? 2 : waveNumber > 3 ? 1 : 0);
+                           (waveNumber > 3 ? 2 : waveNumber > 1 ? 1 : 0);
     
-    if (complexityScore >= 5) {
+    // Lower thresholds so we see boss/aggressive problems earlier
+    if (complexityScore >= 4 || (waveNumber > 5 && Math.random() < 0.3)) {
       personality = 'boss';
       size = 'giant';
       health = 3;
-    } else if (complexityScore >= 3) {
+    } else if (complexityScore >= 2 || (waveNumber > 2 && Math.random() < 0.4)) {
       personality = 'aggressive';
       size = 'large';
       health = 2;
-    } else {
+    } else if (Math.random() < 0.3) {
       personality = 'neutral';
       size = 'medium';
+      health = 1;
+    } else {
+      personality = 'friendly';
+      size = 'small';
       health = 1;
     }
   } else {
@@ -306,10 +311,10 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   }
   
   // Random variation for diversity - but respect difficulty constraints
-  if (Math.random() < 0.1) {
+  if (Math.random() < 0.2) { // Increased from 0.1 to 0.2 for more variety
     if (difficulty === 'hard') {
-      const personalities: Array<'friendly' | 'neutral' | 'aggressive' | 'boss'> = ['friendly', 'neutral', 'aggressive'];
-      if (waveNumber > 7) personalities.push('boss');
+      const personalities: Array<'friendly' | 'neutral' | 'aggressive' | 'boss'> = ['aggressive', 'boss', 'neutral'];
+      if (waveNumber > 3) personalities.push('boss'); // Earlier boss appearance
       personality = personalities[Math.floor(Math.random() * personalities.length)];
     } else {
       // Easy/medium can only be friendly or neutral
@@ -338,6 +343,11 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   
   const personalityEmoji = getPersonalityEmoji(personality);
   const finalText = `${text} ${personalityEmoji}`;
+  
+  // Debug log for boss/aggressive problems
+  if (personality === 'boss' || personality === 'aggressive') {
+    console.log(`Generated ${personality} problem: ${finalText} (difficulty: ${difficulty}, wave: ${waveNumber})`);
+  }
   
   return {
     id: `problem_${problemIdCounter++}`,
