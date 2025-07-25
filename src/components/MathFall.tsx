@@ -40,11 +40,36 @@ const MathFall: React.FC = () => {
 
   const [gameState, setGameState] = useState<GameState>(gameStateRef.current);
   const [starField, setStarField] = useState<Array<{x: number, y: number, speed: number}>>([]);
+  const [audioInitialized, setAudioInitialized] = useState(false);
 
-  // Initialize menu music when component mounts
+  // Initialize audio on first user interaction
+  const initializeAudio = useCallback(() => {
+    if (!audioInitialized) {
+      playBackgroundMusic(1, 'menu');
+      setAudioInitialized(true);
+    }
+  }, [audioInitialized]);
+
+  // Handle user interaction to initialize audio
   useEffect(() => {
-    playBackgroundMusic(1, 'menu');
-  }, []);
+    const handleUserInteraction = () => {
+      initializeAudio();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [initializeAudio]);
 
   // Handle window resize for fullscreen canvas
   useEffect(() => {
