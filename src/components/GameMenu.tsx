@@ -137,24 +137,6 @@ const GameMenu: React.FC<GameMenuProps> = ({
             />
           ))}
           
-          {/* Light beam effects */}
-          {[...Array(3)].map((_, i) => (
-            <div 
-              key={`beam-${i}`}
-              className="absolute animate-light-beam opacity-20"
-              style={{
-                width: '2px',
-                height: '100vh',
-                background: i === 0 ? 'linear-gradient(to bottom, transparent, rgba(34,211,238,0.8), transparent)' :
-                           i === 1 ? 'linear-gradient(to bottom, transparent, rgba(168,85,247,0.6), transparent)' :
-                           'linear-gradient(to bottom, transparent, rgba(236,72,153,0.5), transparent)',
-                left: `${20 + i * 30}%`,
-                top: '0',
-                animationDelay: `${i * 2}s`,
-                animationDuration: '8s'
-              }}
-            />
-          ))}
         </div>
 
         {/* Header */}

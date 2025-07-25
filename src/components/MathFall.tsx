@@ -3,6 +3,7 @@ import { GameState, MathProblem, Particle, Difficulty } from '../types/game';
 import { generateWave, checkAnswer } from '../utils/gameLogic';
 import { getStoredStatistics, saveStatistics, updateStatistics } from '../utils/statisticsManager';
 import { playSound, playBackgroundMusic, stopBackgroundMusic } from '../utils/audio';
+import { shouldSpawnPowerUp, getRandomPowerUpType, createPowerUp, powerUpConfigs } from '../utils/powerUpConfigs';
 import GameMenu from './GameMenu';
 import GameHUD from './GameHUD';
 import StatisticsPanel from './StatisticsPanel';
@@ -29,7 +30,12 @@ const MathFall: React.FC = () => {
     problemsHandled: 0,
     difficulty: 'medium',
     statistics: getStoredStatistics(),
-    gameStartTime: Date.now()
+    gameStartTime: Date.now(),
+    selectedRocket: 'classic',
+    currentMusicTrack: '',
+    powerUps: [],
+    activePowerUps: [],
+    rocketX: 600 // Start in center
   });
 
   const [gameState, setGameState] = useState<GameState>(gameStateRef.current);
@@ -38,8 +44,9 @@ const MathFall: React.FC = () => {
   // Handle window resize for fullscreen canvas
   useEffect(() => {
     const updateCanvasSize = () => {
-      const newWidth = Math.min(window.innerWidth - 40, 1400);
-      const newHeight = Math.min(window.innerHeight - 40, 900);
+      // True fullscreen - use entire viewport
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
       setCanvasSize({ width: newWidth, height: newHeight });
     };
 
@@ -68,7 +75,7 @@ const MathFall: React.FC = () => {
   }, []);
 
   const startGame = useCallback((difficulty: Difficulty) => {
-    playBackgroundMusic();
+    playBackgroundMusic(1, 'playing');
     const wave1 = generateWave(1, difficulty, canvasSize.width);
     const startTime = Date.now();
     
@@ -100,6 +107,9 @@ const MathFall: React.FC = () => {
     const wave = generateWave(currentWave, gameStateRef.current.difficulty, canvasSize.width);
     
     console.log(`Starting Wave ${currentWave} with ${wave.totalProblems} problems (difficulty: ${gameStateRef.current.difficulty})`);
+    
+    // Update music for new wave
+    playBackgroundMusic(currentWave, 'playing');
     
     updateGameState(state => ({
       ...state,
@@ -136,19 +146,40 @@ const MathFall: React.FC = () => {
       .sort((a, b) => b.y - a.y)[0] || null;
   }, []);
 
-  const createExplosion = useCallback((x: number, y: number, isStreak = false) => {
+  const createExplosion = useCallback((x: number, y: number, isStreak = false, personality?: string) => {
     const particles: Particle[] = [];
-    const particleCount = isStreak ? 30 : 20;
-    const colors = isStreak ? ['#ffff00', '#ffa500', '#ff6b6b', '#00ff00'] : ['#ffffff', '#66fcf1'];
+    
+    // Enhanced explosion based on problem personality
+    let particleCount = isStreak ? 30 : 20;
+    let colors = isStreak ? ['#ffff00', '#ffa500', '#ff6b6b', '#00ff00'] : ['#ffffff', '#66fcf1'];
+    let speed = isStreak ? 15 : 10;
+    let life = isStreak ? 50 : 35;
+    
+    if (personality === 'boss') {
+      particleCount = isStreak ? 50 : 40;
+      colors = ['#a855f7', '#ffd700', '#ff4757', '#ffffff'];
+      speed = isStreak ? 20 : 15;
+      life = isStreak ? 70 : 50;
+    } else if (personality === 'aggressive') {
+      particleCount = isStreak ? 35 : 25;
+      colors = ['#ef4444', '#ff6b6b', '#ffa500', '#ffffff'];
+      speed = isStreak ? 18 : 12;
+      life = isStreak ? 60 : 40;
+    } else if (personality === 'friendly') {
+      particleCount = isStreak ? 25 : 15;
+      colors = ['#22c55e', '#66fcf1', '#ffffff', '#90ee90'];
+      speed = isStreak ? 12 : 8;
+      life = isStreak ? 45 : 30;
+    }
     
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x,
         y,
-        vx: (Math.random() - 0.5) * (isStreak ? 15 : 10),
-        vy: (Math.random() - 0.5) * (isStreak ? 15 : 10),
-        life: isStreak ? 50 : 35,
-        maxLife: isStreak ? 50 : 35,
+        vx: (Math.random() - 0.5) * speed,
+        vy: (Math.random() - 0.5) * speed,
+        life,
+        maxLife: life,
         color: colors[Math.floor(Math.random() * colors.length)]
       });
     }
@@ -171,12 +202,26 @@ const MathFall: React.FC = () => {
           // Correct answer - destroy problem
           playSound('destroy');
           const isStreak = currentState.statistics.currentStreak >= 5;
-          createExplosion(targetProblem.x + 50, targetProblem.y + 15, isStreak);
+          createExplosion(targetProblem.x + 50, targetProblem.y + 15, isStreak, targetProblem.personality);
+          
+          // Check if power-up should spawn
+          if (shouldSpawnPowerUp(currentState.wave, currentState.statistics.correctAnswers)) {
+            const powerUpType = getRandomPowerUpType(currentState.wave);
+            const newPowerUp = createPowerUp(powerUpType, targetProblem.x + 25, targetProblem.y);
+            
+            updateGameState(state => ({
+              ...state,
+              powerUps: [...state.powerUps, newPowerUp]
+            }));
+          }
           
           const baseScore = 10;
           const waveMultiplier = Math.floor(currentState.wave / 2) + 1;
           const streakMultiplier = Math.floor(currentState.statistics.currentStreak / 5) + 1;
-          const scoreGain = baseScore * waveMultiplier * streakMultiplier;
+          
+          // Apply score multiplier if active
+          const multiplierBonus = currentState.activePowerUps.find(p => p.type === 'multiplier') ? 2 : 1;
+          const scoreGain = baseScore * waveMultiplier * streakMultiplier * multiplierBonus;
           
           const newStats = updateStatistics(currentState.statistics, {
             currentStreak: currentState.statistics.currentStreak + 1,
@@ -251,11 +296,40 @@ const MathFall: React.FC = () => {
     handleKeyInput(event.key);
   }, [handleKeyInput]);
 
-  // Keyboard event listener
+  // Rocket movement controls
+  const handleMovementKeyPress = useCallback((event: KeyboardEvent) => {
+    const currentState = gameStateRef.current;
+    
+    if (currentState.gameStatus !== 'playing') return;
+    
+    const moveSpeed = 15;
+    const minX = 50;
+    const maxX = canvasSize.width - 50;
+    
+    if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+      event.preventDefault();
+      updateGameState(state => ({
+        ...state,
+        rocketX: Math.max(minX, state.rocketX - moveSpeed)
+      }));
+    } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+      event.preventDefault();
+      updateGameState(state => ({
+        ...state,
+        rocketX: Math.min(maxX, state.rocketX + moveSpeed)
+      }));
+    }
+  }, [updateGameState, canvasSize.width]);
+  
+  // Keyboard event listeners
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleKeyPress]);
+    window.addEventListener('keydown', handleMovementKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keydown', handleMovementKeyPress);
+    };
+  }, [handleKeyPress, handleMovementKeyPress]);
 
   // Game loop
   useEffect(() => {
@@ -274,34 +348,115 @@ const MathFall: React.FC = () => {
         ...(star.y > canvasSize.height && { y: 0, x: Math.random() * canvasSize.width })
       })));
 
-      // Update problems with progressive speed increase
+      // Update problems with progressive speed increase (modified by time slowdown)
       const waveProgress = currentState.problemsHandled / currentState.totalProblemsInWave;
       const difficultySpeedMultiplier = currentState.difficulty === 'easy' ? 0.8 : currentState.difficulty === 'hard' ? 1.3 : 1.0;
-      const speedBoost = (1 + (waveProgress * 0.05) + (currentState.wave * 0.02)) * difficultySpeedMultiplier;
+      const timeSlowdown = currentState.activePowerUps.find(p => p.type === 'timeSlowdown') ? 0.3 : 1.0;
+      const freeze = currentState.activePowerUps.find(p => p.type === 'freeze') ? 0 : 1.0;
+      const speedBoost = (1 + (waveProgress * 0.05) + (currentState.wave * 0.02)) * difficultySpeedMultiplier * timeSlowdown * freeze;
       
       const updatedProblems = currentState.problems.map(problem => ({
         ...problem,
         y: problem.y + (problem.speed * speedBoost)
       }));
 
-      // Check for problems that hit the bottom - use canvas height
+      // Update power-ups
+      const updatedPowerUps = currentState.powerUps.map(powerUp => ({
+        ...powerUp,
+        y: powerUp.y + powerUp.speed
+      })).filter(powerUp => powerUp.y < canvasSize.height && !powerUp.collected);
+
+      // Check for power-up collection (optimized)
+      const shipX = currentState.rocketX || canvasSize.width / 2;
+      const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
+      
+      let newActivePowerUps = [...currentState.activePowerUps];
+      let collectedAny = false;
+      const collectedPowerUpIds: string[] = [];
+      
+      // Only check collection if there are power-ups on screen
+      if (updatedPowerUps.length > 0) {
+        updatedPowerUps.forEach(powerUp => {
+          const distance = Math.sqrt(
+            Math.pow(powerUp.x - shipX, 2) + Math.pow(powerUp.y - shipY, 2)
+          );
+          if (distance < 40 && !powerUp.collected) {
+            collectedAny = true;
+            collectedPowerUpIds.push(powerUp.id);
+            powerUp.collected = true;
+            
+            if (powerUp.type === 'destroyAll') {
+              // Instant effect - destroy all problems (batch create explosions)
+              const explosionPromises = updatedProblems.map(problem => 
+                createExplosion(problem.x + 25, problem.y, false, problem.personality)
+              );
+            } else if (powerUp.duration > 0) {
+              // Add timed effect (prevent duplicates)
+              const existingPowerUp = newActivePowerUps.find(ap => ap.type === powerUp.type);
+              if (existingPowerUp) {
+                // Reset timer instead of stacking
+                existingPowerUp.remainingTime = powerUp.duration;
+              } else {
+                newActivePowerUps.push({
+                  type: powerUp.type,
+                  remainingTime: powerUp.duration,
+                  effect: powerUpConfigs[powerUp.type]
+                });
+              }
+            }
+          }
+        });
+        
+        // Play sound only once for collected power-ups
+        if (collectedAny) {
+          playSound('destroy');
+        }
+      }
+
+      // Update active power-ups timers
+      newActivePowerUps = newActivePowerUps
+        .map(activePowerUp => ({
+          ...activePowerUp,
+          remainingTime: activePowerUp.remainingTime - (1/60) // Assuming 60fps
+        }))
+        .filter(activePowerUp => activePowerUp.remainingTime > 0);
+
+      // Apply destroy all effect (check if any collected power-up was destroyAll)
+      let finalProblems = updatedProblems;
+      let destroyAllActivated = false;
+      if (collectedAny) {
+        // Check if any collected power-up was destroyAll
+        updatedPowerUps.forEach(powerUp => {
+          if (powerUp.collected && powerUp.type === 'destroyAll') {
+            destroyAllActivated = true;
+          }
+        });
+        if (destroyAllActivated) {
+          finalProblems = [];
+        }
+      }
+
+      // Check for problems that hit the bottom (modified by shield)
       const bottomY = canvasSize.height - 50;
-      const problemsAtBottom = updatedProblems.filter(p => p.y > bottomY);
-      const remainingProblems = updatedProblems.filter(p => p.y <= bottomY);
+      const problemsAtBottom = finalProblems.filter(p => p.y > bottomY);
+      const remainingProblems = finalProblems.filter(p => p.y <= bottomY);
 
       let newLives = currentState.lives;
       let newProblemsHandled = currentState.problemsHandled;
       let newStats = currentState.statistics;
 
       if (problemsAtBottom.length > 0) {
-        newLives -= problemsAtBottom.length;
+        const hasShield = currentState.activePowerUps.find(p => p.type === 'shield');
+        if (!hasShield) {
+          newLives -= problemsAtBottom.length;
+        }
         newProblemsHandled += problemsAtBottom.length;
         newStats = updateStatistics(currentState.statistics, {
           currentStreak: 0,
           totalQuestionsAnswered: currentState.statistics.totalQuestionsAnswered + problemsAtBottom.length
         });
         playSound('loseLife');
-        console.log(`${problemsAtBottom.length} problems missed! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
+        console.log(`${problemsAtBottom.length} problems ${hasShield ? 'blocked by shield' : 'missed'}! Problems handled: ${newProblemsHandled}/${currentState.totalProblemsInWave}`);
       }
 
       // Update particles
@@ -316,7 +471,7 @@ const MathFall: React.FC = () => {
 
       // Check game over
       if (newLives <= 0) {
-        stopBackgroundMusic();
+        playBackgroundMusic(currentState.wave, 'gameOver');
         const finalStats = updateStatistics(newStats, {
           highScore: Math.max(newStats.highScore, currentState.score),
           timePlayedSeconds: newStats.timePlayedSeconds + Math.floor((Date.now() - currentState.gameStartTime) / 1000)
@@ -337,6 +492,8 @@ const MathFall: React.FC = () => {
         ...state,
         problems: remainingProblems,
         particles: updatedParticles,
+        powerUps: updatedPowerUps.filter(p => !p.collected),
+        activePowerUps: newActivePowerUps,
         lives: newLives,
         problemsHandled: newProblemsHandled,
         statistics: newStats,
@@ -359,7 +516,7 @@ const MathFall: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [updateGameState, canvasSize, checkWaveCompletion]);
+  }, [updateGameState, canvasSize, checkWaveCompletion, createExplosion]);
 
   // Handle space key for menu/restart
   useEffect(() => {
@@ -367,6 +524,7 @@ const MathFall: React.FC = () => {
       if (event.code === 'Space') {
         event.preventDefault();
         if (gameState.gameStatus === 'gameOver') {
+          playBackgroundMusic(1, 'menu');
           updateGameState(state => ({
             ...state,
             gameStatus: 'menu'
@@ -387,7 +545,12 @@ const MathFall: React.FC = () => {
     updateGameState(state => ({ ...state, gameStatus: 'settings' }));
   };
 
+  const handleRocketChange = (rocket: any) => {
+    updateGameState(state => ({ ...state, selectedRocket: rocket }));
+  };
+
   const handleBackToMenu = () => {
+    playBackgroundMusic(1, 'menu');
     updateGameState(state => ({ ...state, gameStatus: 'menu' }));
   };
 
@@ -402,6 +565,7 @@ const MathFall: React.FC = () => {
       timePlayedSeconds: 0
     };
     saveStatistics(resetStats);
+    playBackgroundMusic(1, 'menu');
     updateGameState(state => ({ 
       ...state, 
       statistics: resetStats,
@@ -410,10 +574,10 @@ const MathFall: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       <div 
         ref={containerRef}
-        className={`relative border-4 border-cyan-400/50 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-400/30 backdrop-blur-sm ${gameState.gameStatus === 'gameOver' ? 'animate-screen-shake' : ''}`}
+        className={`relative w-full h-full overflow-hidden ${gameState.gameStatus === 'gameOver' ? 'animate-screen-shake' : ''}`}
         style={{ width: canvasSize.width, height: canvasSize.height }}
       >
         <GameCanvas 
@@ -425,7 +589,7 @@ const MathFall: React.FC = () => {
         
         {/* React UI Overlays */}
         {gameState.gameStatus === 'menu' && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-lg">
             <GameMenu
               onStartGame={startGame}
               onShowStatistics={handleShowStatistics}
@@ -446,8 +610,12 @@ const MathFall: React.FC = () => {
         )}
         
         {gameState.gameStatus === 'settings' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md p-8">
-            <SettingsPanel onBack={handleBackToMenu} />
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md">
+            <SettingsPanel 
+              onBack={handleBackToMenu}
+              selectedRocket={gameState.selectedRocket}
+              onRocketChange={handleRocketChange}
+            />
           </div>
         )}
         

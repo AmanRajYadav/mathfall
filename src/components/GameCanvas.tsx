@@ -1,6 +1,8 @@
 
 import React, { useRef, useEffect } from 'react';
 import { GameState } from '../types/game';
+import { getRocketConfig } from '../utils/rocketConfigs';
+import { powerUpConfigs } from '../utils/powerUpConfigs';
 
 interface GameCanvasProps {
   gameState: GameState;
@@ -105,7 +107,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
     }
 
     // Enhanced player ship with glow trail (show explosion if game over)
-    const shipX = canvasSize.width / 2;
+    const shipX = gameState.rocketX || canvasSize.width / 2;
     // Position rocket higher on mobile to account for smaller numpad
     const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
     
@@ -134,71 +136,310 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       }
       ctx.shadowBlur = 0;
     } else {
-      // Normal rocket
-      const shipGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, 25);
-      shipGradient.addColorStop(0, '#70a1ff');
-      shipGradient.addColorStop(0.7, '#5352ed');
-      shipGradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = shipGradient;
-      ctx.fillRect(shipX - 25, shipY - 25, 50, 50);
+      // Enhanced rocket with different models
+      const rocketConfig = getRocketConfig(gameState.selectedRocket);
+      const rocketSize = 25 * rocketConfig.size;
+      
+      // Rocket glow aura
+      const rocketGradient = ctx.createRadialGradient(shipX, shipY, 0, shipX, shipY, rocketSize + 10);
+      rocketGradient.addColorStop(0, `${rocketConfig.color}80`);
+      rocketGradient.addColorStop(0.7, `${rocketConfig.color}40`);
+      rocketGradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = rocketGradient;
+      ctx.fillRect(shipX - rocketSize - 10, shipY - rocketSize - 10, (rocketSize + 10) * 2, (rocketSize + 10) * 2);
 
-      ctx.fillStyle = '#70a1ff';
-      ctx.shadowColor = '#70a1ff';
+      // Main rocket body
+      ctx.fillStyle = rocketConfig.color;
+      ctx.shadowColor = rocketConfig.color;
       ctx.shadowBlur = 15;
       ctx.beginPath();
-      ctx.moveTo(shipX, shipY);
-      ctx.lineTo(shipX - 15, shipY + 20);
-      ctx.lineTo(shipX + 15, shipY + 20);
+      ctx.moveTo(shipX, shipY - rocketSize/2);
+      ctx.lineTo(shipX - rocketSize/2, shipY + rocketSize);
+      ctx.lineTo(shipX + rocketSize/2, shipY + rocketSize);
       ctx.closePath();
       ctx.fill();
 
-      // Engine trails
-      ctx.fillStyle = '#ff6b6b';
-      ctx.shadowColor = '#ff6b6b';
-      ctx.shadowBlur = 10;
-      ctx.fillRect(shipX - 10, shipY + 15, 6, 8);
-      ctx.fillRect(shipX + 4, shipY + 15, 6, 8);
+      // Rocket-specific details
+      if (gameState.selectedRocket === 'stealth') {
+        // Stealth - angular design
+        ctx.fillStyle = '#444444';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(shipX - rocketSize/3, shipY);
+        ctx.lineTo(shipX + rocketSize/3, shipY);
+        ctx.lineTo(shipX, shipY - rocketSize/3);
+        ctx.closePath();
+        ctx.fill();
+      } else if (gameState.selectedRocket === 'heavy') {
+        // Heavy - wider, more robust
+        ctx.fillStyle = rocketConfig.color;
+        ctx.shadowBlur = 12;
+        ctx.fillRect(shipX - rocketSize/1.5, shipY, rocketSize * 1.3, rocketSize/3);
+      } else if (gameState.selectedRocket === 'speed') {
+        // Speed - sleek lines
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(shipX - rocketSize/4, shipY - rocketSize/4);
+        ctx.lineTo(shipX + rocketSize/4, shipY - rocketSize/4);
+        ctx.stroke();
+      } else if (gameState.selectedRocket === 'plasma') {
+        // Plasma - energy effects
+        const time = Date.now() * 0.01;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time) * 0.3 + 0.7})`;
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 20;
+        ctx.fillRect(shipX - 3, shipY - rocketSize/3, 6, rocketSize/2);
+      }
+
+      // Enhanced engine trails based on rocket type
+      const trailIntensity = rocketConfig.speed;
+      ctx.fillStyle = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+      ctx.shadowColor = rocketConfig.fireRate > 1 ? '#ff4757' : '#ff6b6b';
+      ctx.shadowBlur = 10 * trailIntensity;
+      
+      const trailWidth = rocketSize/4 * trailIntensity;
+      const trailHeight = rocketSize/2 * trailIntensity;
+      ctx.fillRect(shipX - trailWidth, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
+      ctx.fillRect(shipX + trailWidth * 0.2, shipY + rocketSize/2, trailWidth * 0.8, trailHeight);
       
       // Cockpit
       ctx.fillStyle = '#ffffff';
       ctx.shadowBlur = 5;
-      ctx.fillRect(shipX - 2, shipY + 5, 4, 8);
+      ctx.fillRect(shipX - rocketSize/8, shipY + rocketSize/4, rocketSize/4, rocketSize/3);
       ctx.shadowBlur = 0;
     }
 
-    // Enhanced problems with dynamic styling - double size on mobile
+    // Enhanced problems with personality-based styling
     const isMobile = canvasSize.width < 768;
-    const problemFontSize = Math.min(20, canvasSize.width / 40) * (isMobile ? 2 : 1);
-    ctx.font = `bold ${problemFontSize}px system-ui`;
+    const baseFontSize = Math.min(20, canvasSize.width / 40) * (isMobile ? 2 : 1);
+    
     gameState.problems.forEach(problem => {
       const isTarget = problem === gameState.targetProblem;
+      const time = Date.now() * 0.005;
       
-      if (isTarget) {
-        // Animated target highlight
-        const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
-        const textWidth = ctx.measureText(problem.text).width;
+      // Get personality-based appearance
+      const getProblemAppearance = (personality: string, size: string) => {
+        const sizeMultiplier = 
+          size === 'giant' ? 1.8 :
+          size === 'large' ? 1.4 :
+          size === 'medium' ? 1.1 : 1.0;
         
-        // Glowing background
+        switch (personality) {
+          case 'friendly':
+            return {
+              color: '#22c55e', // Green
+              shadowColor: '#22c55e',
+              bgColor: 'rgba(34, 197, 94, 0.2)',
+              sizeMultiplier,
+              pulseIntensity: 0.3
+            };
+          case 'aggressive':
+            return {
+              color: '#ef4444', // Red
+              shadowColor: '#ef4444',
+              bgColor: 'rgba(239, 68, 68, 0.3)',
+              sizeMultiplier,
+              pulseIntensity: 0.8
+            };
+          case 'boss':
+            return {
+              color: '#a855f7', // Purple
+              shadowColor: '#a855f7',
+              bgColor: 'rgba(168, 85, 247, 0.4)',
+              sizeMultiplier: sizeMultiplier * 1.5,
+              pulseIntensity: 1.0
+            };
+          default: // neutral
+            return {
+              color: '#3b82f6', // Blue
+              shadowColor: '#3b82f6',
+              bgColor: 'rgba(59, 130, 246, 0.2)',
+              sizeMultiplier,
+              pulseIntensity: 0.5
+            };
+        }
+      };
+      
+      const appearance = getProblemAppearance(problem.personality, problem.size);
+      const fontSize = baseFontSize * appearance.sizeMultiplier;
+      ctx.font = `bold ${fontSize}px system-ui`;
+      
+      const textWidth = ctx.measureText(problem.text).width;
+      const bgPadding = 15 * appearance.sizeMultiplier;
+      const bgHeight = 35 * appearance.sizeMultiplier;
+      
+      // Background only for hard difficulty boss problems with special animations
+      if (problem.personality === 'boss' && problem.difficulty === 'hard') {
+        // Boss problems get special animated background
+        const pulse = Math.sin(time + problem.x * 0.01) * 0.3 + 0.7;
+        const bossGradient = ctx.createRadialGradient(
+          problem.x + textWidth/2, problem.y - 15, 0,
+          problem.x + textWidth/2, problem.y - 15, textWidth + 40
+        );
+        bossGradient.addColorStop(0, `rgba(168, 85, 247, ${pulse * 0.6})`);
+        bossGradient.addColorStop(0.5, `rgba(239, 68, 68, ${pulse * 0.4})`);
+        bossGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = bossGradient;
+        ctx.fillRect(problem.x - bgPadding, problem.y - bgHeight, textWidth + bgPadding * 2, bgHeight + 10);
+      }
+      // No background for other problems
+      
+      // Target highlighting (overrides personality color when targeted)
+      if (isTarget) {
+        const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+        
+        // Enhanced target effect
         const targetGradient = ctx.createRadialGradient(
           problem.x + textWidth/2, problem.y - 15, 0,
-          problem.x + textWidth/2, problem.y - 15, textWidth + 20
+          problem.x + textWidth/2, problem.y - 15, textWidth + 30
         );
-        targetGradient.addColorStop(0, `rgba(255, 193, 7, ${pulse * 0.4})`);
+        targetGradient.addColorStop(0, `rgba(255, 193, 7, ${pulse * 0.6})`);
         targetGradient.addColorStop(1, 'transparent');
         ctx.fillStyle = targetGradient;
-        ctx.fillRect(problem.x - 10, problem.y - 35, textWidth + 20, 40);
+        ctx.fillRect(problem.x - 15, problem.y - 40, textWidth + 30, 50);
         
         // Target text
         ctx.fillStyle = '#ffc107';
         ctx.shadowColor = '#ffc107';
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 20 + pulse * 10;
       } else {
-        ctx.fillStyle = '#70a1ff';
-        ctx.shadowColor = '#70a1ff';
-        ctx.shadowBlur = 8;
+        // Simple white text for most problems, special effects only for hard boss/aggressive
+        if (problem.difficulty === 'hard' && (problem.personality === 'boss' || problem.personality === 'aggressive')) {
+          ctx.fillStyle = appearance.color;
+          ctx.shadowColor = appearance.shadowColor;
+          ctx.shadowBlur = 8 + Math.sin(time + problem.x * 0.02) * appearance.pulseIntensity * 5;
+        } else {
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 2;
+        }
       }
       
+      // Draw the problem text
       ctx.fillText(problem.text, problem.x, problem.y);
+      ctx.shadowBlur = 0;
+      
+      // Extra effects only for hard boss problems
+      if (problem.personality === 'boss' && problem.difficulty === 'hard' && !isTarget) {
+        // Boss problems get floating sparkles
+        for (let i = 0; i < 3; i++) {
+          const sparkleX = problem.x + textWidth/2 + Math.sin(time + i) * 20;
+          const sparkleY = problem.y - 20 + Math.cos(time + i * 2) * 10;
+          ctx.fillStyle = `rgba(255, 215, 0, ${Math.sin(time + i) * 0.5 + 0.5})`;
+          ctx.shadowColor = '#ffd700';
+          ctx.shadowBlur = 5;
+          ctx.fillRect(sparkleX - 1, sparkleY - 1, 2, 2);
+        }
+        ctx.shadowBlur = 0;
+      }
+    });
+
+    // Laser targeting system
+    if (gameState.targetProblem && !isGameOver) {
+      const targetProblem = gameState.targetProblem;
+      const targetX = targetProblem.x + ctx.measureText(targetProblem.text).width / 2;
+      const targetY = targetProblem.y;
+      const shipX = gameState.rocketX || canvasSize.width / 2;
+      const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
+      
+      // Animated laser beam
+      const time = Date.now() * 0.01;
+      const intensity = Math.sin(time) * 0.3 + 0.7;
+      
+      // Main laser beam
+      ctx.strokeStyle = `rgba(0, 255, 150, ${intensity})`;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ff96';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.moveTo(shipX, shipY - 10);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+      
+      // Laser particles along the beam
+      const beamLength = Math.sqrt((targetX - shipX) ** 2 + (targetY - shipY + 10) ** 2);
+      const particleCount = Math.floor(beamLength / 20);
+      
+      for (let i = 0; i < particleCount; i++) {
+        const t = i / particleCount;
+        const particleX = shipX + (targetX - shipX) * t + (Math.random() - 0.5) * 4;
+        const particleY = shipY - 10 + (targetY - shipY + 10) * t + (Math.random() - 0.5) * 4;
+        
+        ctx.fillStyle = `rgba(0, 255, 150, ${intensity * 0.8})`;
+        ctx.shadowColor = '#00ff96';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(particleX - 1, particleY - 1, 2, 2);
+      }
+      
+      // Target crosshair
+      ctx.strokeStyle = `rgba(255, 255, 0, ${intensity})`;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#ffff00';
+      ctx.shadowBlur = 10;
+      
+      // Crosshair lines
+      const crosshairSize = 15;
+      ctx.beginPath();
+      ctx.moveTo(targetX - crosshairSize, targetY);
+      ctx.lineTo(targetX + crosshairSize, targetY);
+      ctx.moveTo(targetX, targetY - crosshairSize);
+      ctx.lineTo(targetX, targetY + crosshairSize);
+      ctx.stroke();
+      
+      // Crosshair circle
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, crosshairSize, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      ctx.shadowBlur = 0;
+    }
+
+    // Render power-ups
+    gameState.powerUps?.forEach(powerUp => {
+      if (powerUp.collected) return;
+      
+      const time = Date.now() * 0.01;
+      const pulse = Math.sin(time + powerUp.x * 0.05) * 0.3 + 0.7;
+      const config = powerUpConfigs[powerUp.type];
+      
+      // Power-up glow aura
+      const powerUpGradient = ctx.createRadialGradient(
+        powerUp.x, powerUp.y, 0,
+        powerUp.x, powerUp.y, 40 * pulse
+      );
+      powerUpGradient.addColorStop(0, `${config.color}60`);
+      powerUpGradient.addColorStop(0.5, `${config.color}30`);
+      powerUpGradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = powerUpGradient;
+      ctx.fillRect(powerUp.x - 40, powerUp.y - 40, 80, 80);
+      
+      // Power-up background
+      ctx.fillStyle = `${config.color}40`;
+      ctx.shadowColor = config.color;
+      ctx.shadowBlur = 15 * pulse;
+      ctx.fillRect(powerUp.x - 20, powerUp.y - 20, 40, 40);
+      
+      // Power-up icon
+      ctx.font = 'bold 24px system-ui';
+      ctx.fillStyle = config.color;
+      ctx.textAlign = 'center';
+      ctx.shadowBlur = 10;
+      ctx.fillText(config.icon, powerUp.x, powerUp.y + 8);
+      
+      // Floating particles around power-up
+      for (let i = 0; i < 3; i++) {
+        const particleAngle = time + i * (Math.PI * 2 / 3);
+        const particleX = powerUp.x + Math.cos(particleAngle) * 25;
+        const particleY = powerUp.y + Math.sin(particleAngle) * 25;
+        const particleAlpha = Math.sin(time + i) * 0.5 + 0.5;
+        
+        ctx.fillStyle = `${config.color}${Math.floor(particleAlpha * 255).toString(16).padStart(2, '0')}`;
+        ctx.shadowBlur = 8;
+        ctx.fillRect(particleX - 2, particleY - 2, 4, 4);
+      }
+      
       ctx.shadowBlur = 0;
     });
 

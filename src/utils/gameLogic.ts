@@ -266,13 +266,90 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   const textWidth = text.length * 12;
   const maxX = canvasWidth - textWidth - 20;
   
+  // Determine problem personality and appearance based on complexity and difficulty
+  let personality: 'friendly' | 'neutral' | 'aggressive' | 'boss';
+  let size: 'small' | 'medium' | 'large' | 'giant';
+  let health: number = 1;
+  
+  // Aggressive/boss personalities mainly for hard difficulty
+  if (difficulty === 'hard') {
+    const complexityScore = (type === 'complex' ? 3 : type === 'exponents' || type === 'roots' ? 2 : 1) + 
+                           (waveNumber > 5 ? 2 : waveNumber > 3 ? 1 : 0);
+    
+    if (complexityScore >= 5) {
+      personality = 'boss';
+      size = 'giant';
+      health = 3;
+    } else if (complexityScore >= 3) {
+      personality = 'aggressive';
+      size = 'large';
+      health = 2;
+    } else {
+      personality = 'neutral';
+      size = 'medium';
+      health = 1;
+    }
+  } else {
+    // Easy/medium problems are mostly friendly or neutral
+    const complexityScore = (type === 'complex' ? 2 : type === 'exponents' || type === 'roots' ? 1 : 0) + 
+                           (waveNumber > 7 ? 1 : 0);
+    
+    if (complexityScore >= 2) {
+      personality = 'neutral';
+      size = 'medium';
+      health = 1;
+    } else {
+      personality = 'friendly';
+      size = 'small';
+      health = 1;
+    }
+  }
+  
+  // Random variation for diversity - but respect difficulty constraints
+  if (Math.random() < 0.1) {
+    if (difficulty === 'hard') {
+      const personalities: Array<'friendly' | 'neutral' | 'aggressive' | 'boss'> = ['friendly', 'neutral', 'aggressive'];
+      if (waveNumber > 7) personalities.push('boss');
+      personality = personalities[Math.floor(Math.random() * personalities.length)];
+    } else {
+      // Easy/medium can only be friendly or neutral
+      const personalities: Array<'friendly' | 'neutral'> = ['friendly', 'neutral'];
+      personality = personalities[Math.floor(Math.random() * personalities.length)];
+    }
+  }
+  
+  // Add personality-based emojis to problems
+  const getPersonalityEmoji = (personality: string): string => {
+    switch (personality) {
+      case 'friendly':
+        const friendlyEmojis = ['😊', '🙂', '😄', '😆', '🤗', '😇'];
+        return friendlyEmojis[Math.floor(Math.random() * friendlyEmojis.length)];
+      case 'aggressive':
+        const aggressiveEmojis = ['😠', '😤', '👿', '💢', '🔥', '⚡'];
+        return aggressiveEmojis[Math.floor(Math.random() * aggressiveEmojis.length)];
+      case 'boss':
+        const bossEmojis = ['👑', '💀', '⚔️', '🏆', '💎', '🌟'];
+        return bossEmojis[Math.floor(Math.random() * bossEmojis.length)];
+      default: // neutral
+        const neutralEmojis = ['🤔', '📝', '🧠', '💭', '🎯', '⭐'];
+        return neutralEmojis[Math.floor(Math.random() * neutralEmojis.length)];
+    }
+  };
+  
+  const personalityEmoji = getPersonalityEmoji(personality);
+  const finalText = `${text} ${personalityEmoji}`;
+  
   return {
     id: `problem_${problemIdCounter++}`,
-    text,
+    text: finalText,
     answer,
     x: Math.random() * Math.max(maxX, 50) + 10,
     y: -30,
-    speed
+    speed,
+    difficulty,
+    personality,
+    size,
+    health
   };
 };
 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { GameState } from '../types/game';
 import { useIsMobile } from '../hooks/use-mobile';
+import { powerUpConfigs } from '../utils/powerUpConfigs';
 
 interface GameHUDProps {
   gameState: GameState;
@@ -124,6 +125,44 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
                 {gameState.lives}
               </span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Power-ups Display */}
+      {gameState.activePowerUps && gameState.activePowerUps.length > 0 && (
+        <div className="absolute top-16 sm:top-20 right-2 sm:right-4 z-20">
+          <div className="flex flex-col gap-2">
+            {gameState.activePowerUps.map((powerUp, index) => {
+              const config = powerUpConfigs[powerUp.type];
+              const timePercentage = (powerUp.remainingTime / config.duration) * 100;
+              
+              return (
+                <div key={`${powerUp.type}-${index}`} className="bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg p-2 sm:p-3 min-w-[100px] sm:min-w-[140px]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg" style={{ color: config.color }}>
+                      {config.icon}
+                    </span>
+                    <span className="text-xs sm:text-sm text-white font-semibold truncate">
+                      {isMobile ? config.name.split(' ')[1] || config.name : config.name}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-1.5 sm:h-2">
+                    <div 
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{ 
+                        backgroundColor: config.color,
+                        width: `${timePercentage}%`,
+                        boxShadow: `0 0 8px ${config.color}60`
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-white/70 mt-1 text-center">
+                    {Math.ceil(powerUp.remainingTime)}s
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
