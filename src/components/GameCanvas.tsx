@@ -19,7 +19,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
   useEffect(() => {
     if (!rocketImageRef.current) {
       const img = new Image();
-      img.src = '/rocket-moving.gif';
+      img.src = '/mathfall/rocket-moving.gif';
       img.onload = () => {
         rocketImageRef.current = img;
       };

@@ -12,7 +12,7 @@ export const rocketConfigs: Record<RocketType, RocketConfig> = {
     speed: 1.0,
     fireRate: 1.0,
     useGif: true,
-    gifPath: '/rocket-moving.gif'
+    gifPath: '/mathfall/rocket-moving.gif'
   },
   stealth: {
     id: 'stealth',

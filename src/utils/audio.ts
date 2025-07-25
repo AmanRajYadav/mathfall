@@ -11,12 +11,12 @@ let currentTrack = '';
 
 // Music tracks for different waves/themes  
 const musicTracks = {
-  menu: '/audio/cinematic-menu.mp3', // Epic cinematic menu music like God of War/Call of Duty
-  wave1_3: '/audio/background-music.mp3',
-  wave4_6: '/audio/wave4-music.mp3',
-  wave7_9: '/audio/wave7-music.mp3',
-  wave10plus: '/audio/boss-music.mp3',
-  gameOver: '/audio/gameover-music.mp3'
+  menu: '/mathfall/audio/cinematic-menu.mp3', // Epic cinematic menu music like God of War/Call of Duty
+  wave1_3: '/mathfall/audio/background-music.mp3',
+  wave4_6: '/mathfall/audio/wave4-music.mp3',
+  wave7_9: '/mathfall/audio/wave7-music.mp3',
+  wave10plus: '/mathfall/audio/boss-music.mp3',
+  gameOver: '/mathfall/audio/gameover-music.mp3'
 };
 
 type MusicTrack = keyof typeof musicTracks;
