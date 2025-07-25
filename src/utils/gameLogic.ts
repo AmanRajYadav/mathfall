@@ -6,7 +6,7 @@ let problemIdCounter = 0;
 const getDifficultyMultipliers = (difficulty: Difficulty) => {
   switch (difficulty) {
     case 'easy':
-      return { speedMultiplier: 0.8, complexityMultiplier: 0.6, problemCount: 1.0, spacingMultiplier: 1.2 };
+      return { speedMultiplier: 0.5, complexityMultiplier: 0.6, problemCount: 1.0, spacingMultiplier: 1.2 };
     case 'medium':
       return { speedMultiplier: 1.0, complexityMultiplier: 1.0, problemCount: 1.2, spacingMultiplier: 2.5 };
     case 'hard':
