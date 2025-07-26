@@ -6,7 +6,7 @@ let backgroundMusicGain: GainNode | null = null;
 let musicOscillator: OscillatorNode | null = null;
 let backgroundMusicAudio: HTMLAudioElement | null = null;
 let musicEnabled = true;
-let musicVolume = 0.5; // 50% volume by default
+let musicVolume = 0.4; // 40% volume by default
 let sfxVolume = 1.0; // Separate SFX volume
 let currentTrack = '';
 
