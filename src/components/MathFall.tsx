@@ -378,8 +378,50 @@ const MathFall: React.FC = () => {
     if (currentState.gameStatus !== 'playing') return;
 
     console.log('Processing voice input:', input);
-    handleKeyInput(input);
-  }, [handleKeyInput]);
+    
+    // Clear current input and set the new voice input directly
+    const targetProblem = findTargetProblem(input);
+    
+    if (targetProblem) {
+      if (checkAnswer(targetProblem, input)) {
+        // Correct answer - destroy problem with personality-based sound
+        const soundType = targetProblem.personality === 'boss' ? 'destroyBoss' :
+                         targetProblem.personality === 'aggressive' ? 'destroyAggressive' : 'destroy';
+        playSound(soundType);
+        triggerVibration('light');
+        
+        console.log('Problem solved! Problems handled:', currentState.problemsHandled + 1, '/', currentState.totalProblemsInWave);
+        
+        createExplosion(targetProblem.x, targetProblem.y, targetProblem.personality === 'boss' ? 'boss' : 'normal');
+        
+        updateGameState((state: GameState) => ({
+          ...state,
+          score: state.score + targetProblem.points,
+          problems: state.problems.filter(p => p.id !== targetProblem.id),
+          currentInput: '',
+          targetProblem: null,
+          problemsHandled: state.problemsHandled + 1,
+          statistics: updateStatistics(state.statistics, true)
+        }));
+        
+        checkWaveCompletion();
+      } else {
+        // Show the voice input in the input field
+        updateGameState((state: GameState) => ({
+          ...state,
+          currentInput: input,
+          targetProblem
+        }));
+      }
+    } else {
+      // Show the voice input even if no target found
+      updateGameState((state: GameState) => ({
+        ...state,
+        currentInput: input,
+        targetProblem: null
+      }));
+    }
+  }, [findTargetProblem, createExplosion, updateGameState, checkWaveCompletion, triggerVibration]);
 
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     const currentState = gameStateRef.current;

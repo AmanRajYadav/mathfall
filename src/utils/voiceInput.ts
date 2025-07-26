@@ -28,15 +28,16 @@ class VoiceInputManager {
       continuous: true,
       interimResults: false,
       maxAlternatives: 1,
-      confidence: 0.7,
+      confidence: 0.8, // Higher confidence for better number recognition
       useGemini: false,
       ...config
     };
 
+    // Always initialize both systems for fallback
+    this.initializeSpeechRecognition();
+    
     if (this.config.useGemini && this.config.geminiApiKey) {
       this.initializeGeminiAudio();
-    } else {
-      this.initializeSpeechRecognition();
     }
   }
 
@@ -106,45 +107,56 @@ class VoiceInputManager {
   }
 
   private processVoiceInput(transcript: string): string | null {
-    // Convert speech to numbers
-    const text = transcript.toLowerCase().replace(/[.,!?]/g, '');
+    console.log('Processing Web Speech transcript:', transcript);
     
-    // Handle common number words
+    // Convert speech to numbers - be more strict
+    const text = transcript.toLowerCase().trim().replace(/[.,!?]/g, '');
+    
+    // Reject clearly non-number words
+    const nonNumberWords = ['pan', 'eat', 'cat', 'bat', 'rat', 'hat', 'mat', 'pat', 'sat', 'fat'];
+    if (nonNumberWords.some(word => text.includes(word))) {
+      console.log('Rejecting non-number word:', text);
+      return null;
+    }
+    
+    // Handle common number words with better mapping
     const numberWords: Record<string, string> = {
       'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
       'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9',
       'ten': '10', 'eleven': '11', 'twelve': '12', 'thirteen': '13',
       'fourteen': '14', 'fifteen': '15', 'sixteen': '16', 'seventeen': '17',
-      'eighteen': '18', 'nineteen': '19', 'twenty': '20',
+      'eighteen': '18', 'nineteen': '19', 'twenty': '20', 'twenty one': '21',
+      'twenty two': '22', 'twenty three': '23', 'twenty four': '24', 'twenty five': '25',
       'thirty': '30', 'forty': '40', 'fifty': '50', 'sixty': '60',
       'seventy': '70', 'eighty': '80', 'ninety': '90',
       'hundred': '100', 'thousand': '1000'
     };
 
-    // Simple number extraction - handle basic cases first
-    let processedText = text;
+    // Check for exact number word matches first
+    if (numberWords[text]) {
+      return numberWords[text];
+    }
     
-    // Replace number words with digits
+    // Handle compound numbers (twenty-one, etc.)
+    let processedText = text;
     Object.entries(numberWords).forEach(([word, digit]) => {
       const regex = new RegExp(`\\b${word}\\b`, 'g');
       processedText = processedText.replace(regex, digit);
     });
 
-    // Extract just the numbers from the processed text
-    const numbers = processedText.match(/\\d+/g);
-    
-    if (numbers && numbers.length > 0) {
-      // For math problems, usually we want the final calculated result
-      // For now, return the last number found
-      return numbers[numbers.length - 1];
+    // Extract pure numbers only
+    const pureNumbers = processedText.match(/\b\d+\b/g);
+    if (pureNumbers && pureNumbers.length === 1) {
+      return pureNumbers[0];
     }
 
-    // Try to extract raw numbers from original transcript
-    const rawNumbers = transcript.match(/\\d+/g);
-    if (rawNumbers && rawNumbers.length > 0) {
-      return rawNumbers[rawNumbers.length - 1];
+    // Try to extract raw numbers from original transcript but be strict
+    const rawNumbers = transcript.match(/\b\d+\b/g);
+    if (rawNumbers && rawNumbers.length === 1) {
+      return rawNumbers[0];
     }
 
+    console.log('Could not extract valid number from Web Speech:', transcript);
     return null;
   }
 
@@ -209,7 +221,7 @@ class VoiceInputManager {
             },
             system_instruction: {
               parts: [{
-                text: "You are a math problem solver. Listen to audio input and extract mathematical answers as numbers only. For example, if someone says 'fifteen plus seven equals twenty-two', respond with just '22'. Only respond with the final numerical answer."
+                text: "You are a number recognition system. Your ONLY job is to listen for numbers spoken in audio and return ONLY the digits. Expected inputs: 'ten' → '10', 'twenty-one' → '21', 'fifteen' → '15', 'zero' → '0', 'one hundred' → '100'. IGNORE all non-number words. If you hear any word that isn't clearly a number (like 'pan', 'eat', 'cat'), respond with 'INVALID'. Only return pure digits 0-9 or 'INVALID'."
               }]
             }
           }
@@ -225,8 +237,10 @@ class VoiceInputManager {
           if (response.candidates && response.candidates[0]?.content?.parts) {
             const textPart = response.candidates[0].content.parts.find((part: any) => part.text);
             if (textPart && textPart.text.trim()) {
+              console.log('Gemini raw response:', textPart.text.trim());
               const extractedNumber = this.extractNumberFromGeminiResponse(textPart.text.trim());
               if (extractedNumber && onResult) {
+                console.log('Valid number extracted:', extractedNumber);
                 onResult(extractedNumber);
               }
             }
@@ -302,11 +316,27 @@ class VoiceInputManager {
   }
 
   private extractNumberFromGeminiResponse(text: string): string | null {
-    // Extract numbers from Gemini's response
-    const numbers = text.match(/\d+(\.\d+)?/g);
-    if (numbers && numbers.length > 0) {
-      return numbers[numbers.length - 1];
+    const cleanText = text.trim().toLowerCase();
+    
+    // Reject invalid responses
+    if (cleanText === 'invalid' || cleanText.includes('invalid')) {
+      console.log('Gemini rejected non-number input:', text);
+      return null;
     }
+    
+    // Only accept pure number responses
+    const numberMatch = cleanText.match(/^\d+$/);
+    if (numberMatch) {
+      return numberMatch[0];
+    }
+    
+    // Fallback: extract numbers but be more strict
+    const numbers = text.match(/\b\d+\b/g);
+    if (numbers && numbers.length === 1) {
+      return numbers[0];
+    }
+    
+    console.log('Could not extract valid number from:', text);
     return null;
   }
 
