@@ -1,5 +1,5 @@
 // Voice Input System for MathFall
-// Uses Web Speech API for voice recognition
+// Enhanced with Gemini 2.5 Flash Native Audio Dialog for audio-to-text
 
 interface VoiceInputConfig {
   language: string;
@@ -7,6 +7,8 @@ interface VoiceInputConfig {
   interimResults: boolean;
   maxAlternatives: number;
   confidence: number;
+  useGemini: boolean;
+  geminiApiKey?: string;
 }
 
 class VoiceInputManager {
@@ -15,6 +17,10 @@ class VoiceInputManager {
   private onResultCallback: ((text: string) => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
   private config: VoiceInputConfig;
+  private websocket: WebSocket | null = null;
+  private audioContext: AudioContext | null = null;
+  private mediaStream: MediaStream | null = null;
+  private processor: ScriptProcessorNode | null = null;
 
   constructor(config: Partial<VoiceInputConfig> = {}) {
     this.config = {
@@ -23,10 +29,15 @@ class VoiceInputManager {
       interimResults: false,
       maxAlternatives: 1,
       confidence: 0.7,
+      useGemini: false,
       ...config
     };
 
-    this.initializeSpeechRecognition();
+    if (this.config.useGemini && this.config.geminiApiKey) {
+      this.initializeGeminiAudio();
+    } else {
+      this.initializeSpeechRecognition();
+    }
   }
 
   private initializeSpeechRecognition() {
@@ -137,7 +148,173 @@ class VoiceInputManager {
     return null;
   }
 
+  private async initializeGeminiAudio() {
+    try {
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (error) {
+      console.error('Failed to initialize audio context:', error);
+    }
+  }
+
+  private async startGeminiAudioCapture(onResult: (text: string) => void, onError?: (error: string) => void) {
+    if (!this.config.geminiApiKey) {
+      const error = 'Gemini API key not provided';
+      console.error(error);
+      if (onError) onError(error);
+      return false;
+    }
+
+    try {
+      // Get microphone access
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: { 
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+
+      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+      
+      // Create processor for audio data
+      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+      
+      // Connect WebSocket to Gemini Live API
+      const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${this.config.geminiApiKey}`;
+      
+      this.websocket = new WebSocket(wsUrl);
+      
+      this.websocket.onopen = () => {
+        console.log('Connected to Gemini Live API');
+        this.isListening = true;
+        
+        // Send initial setup message
+        const setupMessage = {
+          setup: {
+            model: "models/gemini-2.5-flash-preview-native-audio-dialog",
+            generation_config: {
+              response_modalities: ["TEXT"],
+              speech_config: {
+                voice_config: {
+                  prebuilt_voice_config: {
+                    voice_name: "Aoede"
+                  }
+                }
+              }
+            },
+            system_instruction: {
+              parts: [{
+                text: "You are a math problem solver. Listen to audio input and extract mathematical answers as numbers only. For example, if someone says 'fifteen plus seven equals twenty-two', respond with just '22'. Only respond with the final numerical answer."
+              }]
+            }
+          }
+        };
+        
+        this.websocket?.send(JSON.stringify(setupMessage));
+      };
+
+      this.websocket.onmessage = (event) => {
+        try {
+          const response = JSON.parse(event.data);
+          
+          if (response.candidates && response.candidates[0]?.content?.parts) {
+            const textPart = response.candidates[0].content.parts.find((part: any) => part.text);
+            if (textPart && textPart.text.trim()) {
+              const extractedNumber = this.extractNumberFromGeminiResponse(textPart.text.trim());
+              if (extractedNumber && onResult) {
+                onResult(extractedNumber);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing Gemini response:', error);
+        }
+      };
+
+      this.websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        if (onError) onError('Connection error');
+        this.isListening = false;
+      };
+
+      this.websocket.onclose = () => {
+        console.log('WebSocket connection closed');
+        this.isListening = false;
+      };
+
+      // Process audio data
+      this.processor.onaudioprocess = (event) => {
+        if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+          const inputBuffer = event.inputBuffer.getChannelData(0);
+          
+          // Convert to 16-bit PCM
+          const pcmData = this.convertToPCM16(inputBuffer);
+          
+          // Send audio data to Gemini
+          const audioMessage = {
+            realtime_input: {
+              media_chunks: [{
+                mime_type: "audio/pcm;rate=16000",
+                data: this.arrayBufferToBase64(pcmData)
+              }]
+            }
+          };
+          
+          this.websocket.send(JSON.stringify(audioMessage));
+        }
+      };
+
+      source.connect(this.processor);
+      this.processor.connect(this.audioContext.destination);
+
+      return true;
+    } catch (error) {
+      console.error('Error starting Gemini audio capture:', error);
+      if (onError) onError(error instanceof Error ? error.message : 'Unknown error');
+      return false;
+    }
+  }
+
+  private convertToPCM16(float32Array: Float32Array): ArrayBuffer {
+    const buffer = new ArrayBuffer(float32Array.length * 2);
+    const view = new DataView(buffer);
+    
+    for (let i = 0; i < float32Array.length; i++) {
+      const sample = Math.max(-1, Math.min(1, float32Array[i]));
+      view.setInt16(i * 2, sample * 0x7FFF, true);
+    }
+    
+    return buffer;
+  }
+
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  private extractNumberFromGeminiResponse(text: string): string | null {
+    // Extract numbers from Gemini's response
+    const numbers = text.match(/\d+(\.\d+)?/g);
+    if (numbers && numbers.length > 0) {
+      return numbers[numbers.length - 1];
+    }
+    return null;
+  }
+
   public startListening(onResult: (text: string) => void, onError?: (error: string) => void) {
+    if (this.config.useGemini && this.config.geminiApiKey) {
+      return this.startGeminiAudioCapture(onResult, onError);
+    }
+
     if (!this.recognition) {
       const error = 'Speech recognition not available';
       console.error(error);
@@ -164,9 +341,27 @@ class VoiceInputManager {
   }
 
   public stopListening() {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
+    if (this.config.useGemini) {
+      // Stop Gemini audio capture
+      if (this.websocket) {
+        this.websocket.close();
+        this.websocket = null;
+      }
+      if (this.processor) {
+        this.processor.disconnect();
+        this.processor = null;
+      }
+      if (this.mediaStream) {
+        this.mediaStream.getTracks().forEach(track => track.stop());
+        this.mediaStream = null;
+      }
+    } else {
+      // Stop speech recognition
+      if (this.recognition && this.isListening) {
+        this.recognition.stop();
+      }
     }
+    
     this.isListening = false;
     this.onResultCallback = null;
     this.onErrorCallback = null;

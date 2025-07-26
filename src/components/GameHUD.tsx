@@ -1,15 +1,66 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { GameState } from '../types/game';
 import { useIsMobile } from '../hooks/use-mobile';
 import { powerUpConfigs } from '../utils/powerUpConfigs';
+import { getVoiceInputManager } from '../utils/voiceInput';
 
 interface GameHUDProps {
   gameState: GameState;
+  onVoiceInput?: (input: string) => void;
 }
 
-const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
+const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
   const isMobile = useIsMobile();
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  
+  const voiceManager = getVoiceInputManager({
+    useGemini: true,
+    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY
+  });
+
+  const toggleVoiceInput = async () => {
+    if (!isVoiceEnabled) {
+      // Enable voice input
+      setIsVoiceEnabled(true);
+      setIsListening(true);
+      
+      const success = await voiceManager.startListening(
+        (text: string) => {
+          console.log('Voice input received:', text);
+          if (onVoiceInput) {
+            onVoiceInput(text);
+          }
+          // Continue listening for next input
+          setTimeout(() => {
+            if (isVoiceEnabled) {
+              voiceManager.startListening(
+                (text: string) => {
+                  if (onVoiceInput) onVoiceInput(text);
+                },
+                (error: string) => console.error('Voice input error:', error)
+              );
+            }
+          }, 100);
+        },
+        (error: string) => {
+          console.error('Voice input error:', error);
+          setIsListening(false);
+        }
+      );
+      
+      if (!success) {
+        setIsVoiceEnabled(false);
+        setIsListening(false);
+      }
+    } else {
+      // Disable voice input
+      voiceManager.stopListening();
+      setIsVoiceEnabled(false);
+      setIsListening(false);
+    }
+  };
   
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -50,14 +101,34 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState }) => {
             </div>
           </div>
           
-          <div className="text-right text-white font-mono">
-            <div className="text-sm sm:text-lg md:text-xl font-bold flex items-center gap-1 sm:gap-3 drop-shadow-lg">
-              <span className="text-lg sm:text-xl md:text-2xl">⏱️</span>
-              <span className={isMobile ? 'text-xs' : ''}>{formatTime(currentTime)}</span>
-            </div>
-            <div className="text-xs sm:text-sm text-white drop-shadow-md">
-              <span className="text-emerald-300 font-bold">{gameState.statistics.accuracy}%</span>
-              {!isMobile && ' Accuracy'}
+          <div className="text-right text-white font-mono flex items-center gap-2 sm:gap-4">
+            {/* Voice Input Toggle Button */}
+            <button
+              onClick={toggleVoiceInput}
+              className={`
+                flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all duration-200 transform hover:scale-110
+                ${isVoiceEnabled 
+                  ? 'bg-red-500/80 border-red-400 shadow-lg shadow-red-500/40' 
+                  : 'bg-blue-500/80 border-blue-400 shadow-lg shadow-blue-500/40'
+                }
+                ${isListening ? 'animate-pulse' : ''}
+              `}
+              title={isVoiceEnabled ? 'Disable Voice Input' : 'Enable Voice Input'}
+            >
+              <span className="text-white text-lg sm:text-xl">
+                {isVoiceEnabled ? '🔴' : '🎤'}
+              </span>
+            </button>
+            
+            <div>
+              <div className="text-sm sm:text-lg md:text-xl font-bold flex items-center gap-1 sm:gap-3 drop-shadow-lg">
+                <span className="text-lg sm:text-xl md:text-2xl">⏱️</span>
+                <span className={isMobile ? 'text-xs' : ''}>{formatTime(currentTime)}</span>
+              </div>
+              <div className="text-xs sm:text-sm text-white drop-shadow-md">
+                <span className="text-emerald-300 font-bold">{gameState.statistics.accuracy}%</span>
+                {!isMobile && ' Accuracy'}
+              </div>
             </div>
           </div>
         </div>

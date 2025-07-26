@@ -372,6 +372,15 @@ const MathFall: React.FC = () => {
     handleKeyInput(key);
   }, [handleKeyInput]);
 
+  const handleVoiceInput = useCallback((input: string) => {
+    const currentState = gameStateRef.current;
+    
+    if (currentState.gameStatus !== 'playing') return;
+
+    console.log('Processing voice input:', input);
+    handleKeyInput(input);
+  }, [handleKeyInput]);
+
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     const currentState = gameStateRef.current;
     
@@ -712,7 +721,10 @@ const MathFall: React.FC = () => {
         
         {gameState.gameStatus === 'playing' && (
           <>
-            <GameHUD gameState={gameState} />
+            <GameHUD 
+              gameState={gameState} 
+              onVoiceInput={handleVoiceInput}
+            />
             <MobileNumpad 
               onKeyPress={handleMobileKeyPress}
               currentInput={gameState.currentInput}
