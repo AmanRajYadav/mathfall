@@ -80,7 +80,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       ctx.font = `${scoreFontSize}px system-ui`;
       ctx.fillStyle = '#70a1ff';
       ctx.shadowBlur = 15;
-      ctx.fillText(`Final Score: ${gameState.score.toLocaleString()}`, canvasSize.width/2, canvasSize.height/2);
+      ctx.fillText(`Final Score: ${(gameState.score || 0).toLocaleString()}`, canvasSize.width/2, canvasSize.height/2);
       
       if (gameState.score === gameState.statistics.highScore) {
         ctx.fillStyle = '#ffa502';

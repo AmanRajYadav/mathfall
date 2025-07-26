@@ -288,7 +288,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
                   <Trophy className="w-8 h-8 text-yellow-200 group-hover:text-yellow-100 transition-colors drop-shadow-lg" />
                 </div>
                 <div className="text-3xl font-bold text-yellow-200 mb-2 group-hover:text-yellow-100 transition-colors drop-shadow-lg">
-                  {statistics.highScore.toLocaleString()}
+                  {(statistics.highScore || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-yellow-300/90 font-semibold uppercase tracking-wide">High Score</div>
                 <div className="w-full h-1 bg-gradient-to-r from-transparent via-yellow-400/70 to-transparent mt-3 rounded-full" />
@@ -324,7 +324,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
                   <Brain className="w-8 h-8 text-purple-200 group-hover:text-purple-100 transition-colors drop-shadow-lg" />
                 </div>
                 <div className="text-3xl font-bold text-purple-200 mb-2 group-hover:text-purple-100 transition-colors drop-shadow-lg">
-                  {statistics.totalQuestionsAnswered.toLocaleString()}
+                  {(statistics.totalQuestionsAnswered || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-purple-300/90 font-semibold uppercase tracking-wide">Questions</div>
                 <div className="w-full h-1 bg-gradient-to-r from-transparent via-purple-400/70 to-transparent mt-3 rounded-full" />

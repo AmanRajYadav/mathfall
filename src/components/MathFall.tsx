@@ -400,15 +400,23 @@ const MathFall: React.FC = () => {
         
         createExplosion(targetProblem.x, targetProblem.y, targetProblem.personality === 'boss' ? 'boss' : 'normal');
         
-        updateGameState((state: GameState) => ({
-          ...state,
-          score: (state.score || 0) + (targetProblem.points || 10),
-          problems: state.problems.filter(p => p.id !== targetProblem.id),
-          currentInput: '',
-          targetProblem: null,
-          problemsHandled: state.problemsHandled + 1,
-          statistics: updateStatistics(state.statistics, true)
-        }));
+        updateGameState((state: GameState) => {
+          const newStats = updateStatistics(state.statistics, {
+            currentStreak: state.statistics.currentStreak + 1,
+            totalQuestionsAnswered: state.statistics.totalQuestionsAnswered + 1,
+            correctAnswers: state.statistics.correctAnswers + 1
+          });
+          
+          return {
+            ...state,
+            score: (state.score || 0) + (targetProblem.points || 10),
+            problems: state.problems.filter(p => p.id !== targetProblem.id),
+            currentInput: '',
+            targetProblem: null,
+            problemsHandled: state.problemsHandled + 1,
+            statistics: newStats
+          };
+        });
         
         checkWaveCompletion();
       } else {

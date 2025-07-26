@@ -17,7 +17,7 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
   
   const voiceManager = getVoiceInputManager({
     useGemini: true,
-    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY
+    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyD5uG6TMkUY0Q4XRtAdOFQq_05R5aaFsck'
   });
 
   // Debug API key loading
