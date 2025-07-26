@@ -86,7 +86,7 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
         <div className="flex justify-between items-center px-2 sm:px-4">
           <div className="text-white font-mono">
             <div className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1 drop-shadow-lg">
-              {gameState.score.toLocaleString()}
+              {(gameState.score || 0).toLocaleString()}
             </div>
             <div className="text-xs sm:text-sm text-white flex items-center gap-1 sm:gap-2 drop-shadow-md">
               <span className={isMobile ? 'hidden' : ''}>Streak:</span>
