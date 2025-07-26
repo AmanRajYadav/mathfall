@@ -7,6 +7,7 @@ let musicOscillator: OscillatorNode | null = null;
 let backgroundMusicAudio: HTMLAudioElement | null = null;
 let musicEnabled = true;
 let musicVolume = 1.0; // Full volume by default
+let sfxVolume = 1.0; // Separate SFX volume
 let currentTrack = '';
 
 // Music tracks for different waves/themes  
@@ -45,8 +46,8 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       // Quick zap sound for friendly/neutral problems
       oscillator.frequency.setValueAtTime(800, currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(200, currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.3, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.3 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.15);
       oscillator.type = 'square';
       break;
 
@@ -54,8 +55,8 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       // Harsh, aggressive destruction sound
       oscillator.frequency.setValueAtTime(1200, currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(150, currentTime + 0.12);
-      gainNode.gain.setValueAtTime(0.4, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.18);
+      gainNode.gain.setValueAtTime(0.4 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.18);
       oscillator.type = 'sawtooth';
       break;
 
@@ -69,15 +70,15 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       // Main frequency
       oscillator.frequency.setValueAtTime(1500, currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(100, currentTime + 0.25);
-      gainNode.gain.setValueAtTime(0.5, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.3);
+      gainNode.gain.setValueAtTime(0.5 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.3);
       oscillator.type = 'square';
       
       // Harmonic frequency
       osc2.frequency.setValueAtTime(750, currentTime);
       osc2.frequency.exponentialRampToValueAtTime(50, currentTime + 0.25);
-      gain2.gain.setValueAtTime(0.3, currentTime);
-      gain2.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.3);
+      gain2.gain.setValueAtTime(0.3 * sfxVolume, currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.3);
       osc2.type = 'triangle';
       
       osc2.start(currentTime);
@@ -89,8 +90,8 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       oscillator.frequency.setValueAtTime(1000, currentTime);
       oscillator.frequency.linearRampToValueAtTime(1500, currentTime + 0.05);
       oscillator.frequency.exponentialRampToValueAtTime(800, currentTime + 0.08);
-      gainNode.gain.setValueAtTime(0.2, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.2 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.1);
       oscillator.type = 'sine';
       break;
 
@@ -99,8 +100,8 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       oscillator.frequency.setValueAtTime(600, currentTime);
       oscillator.frequency.linearRampToValueAtTime(1200, currentTime + 0.1);
       oscillator.frequency.linearRampToValueAtTime(900, currentTime + 0.2);
-      gainNode.gain.setValueAtTime(0.25, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.25);
+      gainNode.gain.setValueAtTime(0.25 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.25);
       oscillator.type = 'triangle';
       break;
 
@@ -108,8 +109,8 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       // Lower warning sound
       oscillator.frequency.setValueAtTime(150, currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(80, currentTime + 0.5);
-      gainNode.gain.setValueAtTime(0.4, currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.6);
+      gainNode.gain.setValueAtTime(0.4 * sfxVolume, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.6);
       oscillator.type = 'sawtooth';
       break;
 
@@ -119,9 +120,9 @@ export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' 
       oscillator.frequency.setValueAtTime(500, currentTime + 0.1);
       oscillator.frequency.setValueAtTime(600, currentTime + 0.2);
       oscillator.frequency.setValueAtTime(800, currentTime + 0.3);
-      gainNode.gain.setValueAtTime(0.3, currentTime);
-      gainNode.gain.setValueAtTime(0.3, currentTime + 0.3);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.8);
+      gainNode.gain.setValueAtTime(0.3 * sfxVolume, currentTime);
+      gainNode.gain.setValueAtTime(0.3 * sfxVolume, currentTime + 0.3);
+      gainNode.gain.exponentialRampToValueAtTime(0.01 * sfxVolume, currentTime + 0.8);
       oscillator.type = 'triangle';
       break;
   }
@@ -313,3 +314,10 @@ export const setMusicVolume = (volume: number) => {
 
 export const getMusicEnabled = () => musicEnabled;
 export const getMusicVolume = () => musicVolume;
+
+// SFX Volume Controls
+export const setSfxVolume = (volume: number) => {
+  sfxVolume = Math.max(0, Math.min(1, volume));
+};
+
+export const getSfxVolume = () => sfxVolume;

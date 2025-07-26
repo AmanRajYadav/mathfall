@@ -260,11 +260,13 @@ const MathFall: React.FC = () => {
           // Correct answer - destroy problem with personality-based sound
           const soundType = targetProblem.personality === 'boss' ? 'destroyBoss' : 
                            targetProblem.personality === 'aggressive' ? 'destroyAggressive' : 'destroy';
+          console.log(`Playing sound: ${soundType} for ${targetProblem.personality} problem`);
           playSound(soundType);
           
           // Trigger vibration based on problem personality
           const vibrationIntensity = targetProblem.personality === 'boss' ? 'heavy' : 
                                    targetProblem.personality === 'aggressive' ? 'medium' : 'light';
+          console.log(`Triggering vibration: ${vibrationIntensity}`);
           triggerVibration(vibrationIntensity);
           
           const isStreak = currentState.statistics.currentStreak >= 5;
@@ -318,6 +320,7 @@ const MathFall: React.FC = () => {
           const nowTargeting = targetProblem !== null;
           
           if (!wasTargeting && nowTargeting) {
+            console.log('Playing laser shoot sound - new target acquired');
             playSound('laserShoot'); // Play laser sound when first locking onto target
           }
           
@@ -449,7 +452,7 @@ const MathFall: React.FC = () => {
 
       // Check for power-up collection (optimized)
       const shipX = currentState.rocketX || canvasSize.width / 2;
-      const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
+      const shipY = canvasSize.height - (canvasSize.width < 768 ? 180 : 25);
       
       let newActivePowerUps = [...currentState.activePowerUps];
       let collectedAny = false;

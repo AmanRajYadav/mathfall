@@ -58,14 +58,14 @@ export const powerUpConfigs: Record<PowerUpType, PowerUpConfig> = {
 };
 
 export const shouldSpawnPowerUp = (wave: number, problemsSolved: number): boolean => {
-  // Higher chance in later waves - increased by 20% from current values
-  const baseChance = ((0.02 + (wave * 0.005)) * 0.1) * 1.2;
+  // Higher chance in later waves - increased by 30% from original values
+  const baseChance = ((0.02 + (wave * 0.005)) * 0.1) * 1.3;
   
-  // Bonus chance for solving difficult problems - increased by 20%
-  const difficultyBonus = ((problemsSolved * 0.001) * 0.1) * 1.2;
+  // Bonus chance for solving difficult problems - increased by 30%
+  const difficultyBonus = ((problemsSolved * 0.001) * 0.1) * 1.3;
   
-  // Special power-ups drop from boss problems - increased final chance by 20%
-  const finalChance = Math.min(baseChance + difficultyBonus, 0.018); // Increased from 0.015 to 0.018 (20% more)
+  // Special power-ups drop from boss problems - increased final chance by 30%
+  const finalChance = Math.min(baseChance + difficultyBonus, 0.0195); // Increased from 0.015 to 0.0195 (30% more)
   
   return Math.random() < finalChance;
 };

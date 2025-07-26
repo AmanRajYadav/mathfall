@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { RocketType, rocketConfigs } from '../utils/rocketConfigs';
-import { setMusicVolume, getMusicVolume, toggleMusic, getMusicEnabled } from '../utils/audio';
+import { setMusicVolume, getMusicVolume, toggleMusic, getMusicEnabled, setSfxVolume, getSfxVolume } from '../utils/audio';
 import { Volume2, VolumeX, Rocket, Settings as SettingsIcon } from 'lucide-react';
 
 interface SettingsPanelProps {
@@ -16,12 +16,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onRocketChange
 }) => {
   const [volume, setVolume] = useState(getMusicVolume() * 100);
+  const [sfxVolume, setSfxVolumeState] = useState(getSfxVolume() * 100);
   const [musicEnabled, setMusicEnabled] = useState(getMusicEnabled());
   const [effects, setEffects] = useState(true);
 
   const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
     setMusicVolume(newVolume / 100);
+  };
+
+  const handleSfxVolumeChange = (newVolume: number) => {
+    setSfxVolumeState(newVolume);
+    setSfxVolume(newVolume / 100);
   };
 
   const handleMusicToggle = () => {
@@ -123,6 +129,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     className="w-full h-3 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
                   />
                   <div className="text-sm text-gray-400 mt-2 text-center">{Math.round(volume)}%</div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-lg font-semibold text-green-200">SFX Volume</label>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sfxVolume}
+                    onChange={(e) => handleSfxVolumeChange(Number(e.target.value))}
+                    className="w-full h-3 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="text-sm text-gray-400 mt-2 text-center">{Math.round(sfxVolume)}%</div>
                 </div>
                 
                 <div>

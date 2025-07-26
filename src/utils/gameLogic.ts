@@ -279,8 +279,11 @@ const generateProblem = (type: 'addition' | 'subtraction' | 'multiplication' | '
   const speed = baseSpeed * speedMultiplier;
   
   // More accurate text width calculation (accounting for emoji and different character widths)
-  const textWidth = text.length * 14; // Increased multiplier for better accuracy
-  const maxX = Math.max(50, canvasWidth - textWidth - 40); // Ensure minimum 50px margin
+  // Use larger multiplier for mobile devices (smaller canvas width)
+  const isMobile = canvasWidth < 768;
+  const textWidth = text.length * (isMobile ? 20 : 16); // Extra padding for mobile
+  const margin = isMobile ? 80 : 60; // Larger margin for mobile
+  const maxX = Math.max(50, canvasWidth - textWidth - margin);
   
   // Progressive personality system - all personalities available in easy mode
   // Difficulty increases as waves progress: Medium problems after wave 5, Hard problems after wave 9

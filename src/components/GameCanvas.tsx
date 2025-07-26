@@ -121,7 +121,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
     // Enhanced player ship with glow trail (show explosion if game over)
     const shipX = gameState.rocketX || canvasSize.width / 2;
     // Position rocket higher on mobile to account for smaller numpad
-    const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
+    const shipY = canvasSize.height - (canvasSize.width < 768 ? 180 : 25);
     
     if (isGameOver) {
       // Rocket explosion effect
@@ -386,7 +386,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, starField, canvasSiz
       const targetX = targetProblem.x + ctx.measureText(targetProblem.text).width / 2;
       const targetY = targetProblem.y;
       const shipX = gameState.rocketX || canvasSize.width / 2;
-      const shipY = canvasSize.height - (canvasSize.width < 768 ? 120 : 25);
+      const shipY = canvasSize.height - (canvasSize.width < 768 ? 180 : 25);
       
       // Animated laser beam
       const time = Date.now() * 0.01;
