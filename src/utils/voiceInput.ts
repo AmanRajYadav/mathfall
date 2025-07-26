@@ -28,7 +28,7 @@ class VoiceInputManager {
       continuous: true,
       interimResults: false,
       maxAlternatives: 1,
-      confidence: 0.8, // Higher confidence for better number recognition
+      confidence: 0.7, // Balanced confidence for number recognition
       useGemini: false,
       ...config
     };
@@ -90,9 +90,15 @@ class VoiceInputManager {
         if (confidence >= this.config.confidence) {
           // Extract numbers from speech
           const processedInput = this.processVoiceInput(transcript);
+          console.log('Processed voice input result:', processedInput);
           if (processedInput && this.onResultCallback) {
+            console.log('Calling onResult callback with:', processedInput);
             this.onResultCallback(processedInput);
+          } else {
+            console.log('No valid number extracted from:', transcript);
           }
+        } else {
+          console.log('Confidence too low:', confidence, 'required:', this.config.confidence);
         }
       }
     };
@@ -150,10 +156,16 @@ class VoiceInputManager {
       return pureNumbers[0];
     }
 
-    // Try to extract raw numbers from original transcript but be strict
+    // Try to extract raw numbers from original transcript
     const rawNumbers = transcript.match(/\b\d+\b/g);
-    if (rawNumbers && rawNumbers.length === 1) {
+    if (rawNumbers && rawNumbers.length >= 1) {
+      // Return the first clear number found
       return rawNumbers[0];
+    }
+
+    // Last resort: check if the entire transcript is just a number
+    if (/^\d+$/.test(text)) {
+      return text;
     }
 
     console.log('Could not extract valid number from Web Speech:', transcript);

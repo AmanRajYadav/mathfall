@@ -375,9 +375,15 @@ const MathFall: React.FC = () => {
   const handleVoiceInput = useCallback((input: string) => {
     const currentState = gameStateRef.current;
     
-    if (currentState.gameStatus !== 'playing') return;
+    console.log('MathFall: handleVoiceInput called with:', input);
+    console.log('MathFall: Current game status:', currentState.gameStatus);
+    
+    if (currentState.gameStatus !== 'playing') {
+      console.log('MathFall: Game not playing, ignoring voice input');
+      return;
+    }
 
-    console.log('Processing voice input:', input);
+    console.log('MathFall: Processing voice input:', input);
     
     // Clear current input and set the new voice input directly
     const targetProblem = findTargetProblem(input);

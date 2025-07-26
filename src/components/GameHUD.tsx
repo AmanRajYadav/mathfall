@@ -28,9 +28,12 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
       
       const success = await voiceManager.startListening(
         (text: string) => {
-          console.log('Voice input received:', text);
+          console.log('GameHUD: Voice input received:', text);
           if (onVoiceInput) {
+            console.log('GameHUD: Calling onVoiceInput with:', text);
             onVoiceInput(text);
+          } else {
+            console.log('GameHUD: No onVoiceInput callback provided');
           }
           // Continue listening for next input
           setTimeout(() => {
