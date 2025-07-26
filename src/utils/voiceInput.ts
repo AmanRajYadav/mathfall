@@ -78,6 +78,21 @@ class VoiceInputManager {
     this.recognition.onend = () => {
       console.log('Voice recognition ended');
       this.isListening = false;
+      
+      // Auto-restart if we were supposed to be listening
+      if (this.onResultCallback) {
+        console.log('Auto-restarting voice recognition...');
+        setTimeout(() => {
+          if (this.onResultCallback && !this.isListening) {
+            try {
+              this.recognition?.start();
+              this.isListening = true;
+            } catch (error) {
+              console.error('Error restarting voice recognition:', error);
+            }
+          }
+        }, 100);
+      }
     };
 
     this.recognition.onresult = (event) => {
