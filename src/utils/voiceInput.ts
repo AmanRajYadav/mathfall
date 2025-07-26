@@ -305,6 +305,11 @@ class VoiceInputManager {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          console.log('Gemini API rate limit hit, falling back to Web Speech API');
+          this.fallbackToWebSpeech();
+          return null;
+        }
         throw new Error(`Gemini API error: ${response.status}`);
       }
 
@@ -314,8 +319,29 @@ class VoiceInputManager {
       return text?.trim() || null;
     } catch (error) {
       console.error('Gemini transcription error:', error);
+      if (error.message?.includes('429')) {
+        this.fallbackToWebSpeech();
+      }
       return null;
     }
+  }
+
+  private fallbackToWebSpeech() {
+    console.log('Switching to Web Speech API due to rate limits');
+    this.isListening = false;
+    
+    // Stop current Gemini recording
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => track.stop());
+      this.mediaStream = null;
+    }
+
+    // Start Web Speech API
+    setTimeout(() => {
+      if (this.onResultCallback) {
+        this.startWebSpeechFallback();
+      }
+    }, 100);
   }
 
   private blobToBase64(blob: Blob): Promise<string> {
