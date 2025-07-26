@@ -62,6 +62,10 @@ class VoiceInputManager {
     this.recognition.continuous = this.config.continuous;
     this.recognition.interimResults = this.config.interimResults;
     this.recognition.maxAlternatives = this.config.maxAlternatives;
+    
+    // Optimize for arcade game performance
+    (this.recognition as any).serviceURI = 'https://www.google.com/speech-api/v2/recognize';
+    (this.recognition as any).grammars = null; // Disable grammar restrictions for faster response
   }
 
   private setupEventListeners() {
@@ -180,7 +184,7 @@ class VoiceInputManager {
     }
   }
 
-  private async startGeminiAudioCapture(onResult: (text: string) => void, onError?: (error: string) => void) {
+  private async startGeminiFileUpload(onResult: (text: string) => void, onError?: (error: string) => void) {
     if (!this.config.geminiApiKey) {
       const error = 'Gemini API key not provided';
       console.error(error);
@@ -189,131 +193,139 @@ class VoiceInputManager {
     }
 
     try {
-      // Get microphone access
+      console.log('Starting Gemini file upload audio transcription');
+      
+      // Get microphone access with better quality settings
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
         audio: { 
-          sampleRate: 16000,
+          sampleRate: 48000, // Higher quality
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         } 
       });
 
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
+      // Create MediaRecorder for better audio capture
+      const recorder = new MediaRecorder(this.mediaStream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
 
-      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-      
-      // Create processor for audio data
-      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-      
-      // Connect WebSocket to Gemini Live API
-      const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${this.config.geminiApiKey}`;
-      
-      this.websocket = new WebSocket(wsUrl);
-      
-      this.websocket.onopen = () => {
-        console.log('Connected to Gemini Live API');
-        this.isListening = true;
-        
-        // Send initial setup message
-        const setupMessage = {
-          setup: {
-            model: "models/gemini-2.5-flash-preview-native-audio-dialog",
-            generation_config: {
-              response_modalities: ["TEXT"],
-              speech_config: {
-                voice_config: {
-                  prebuilt_voice_config: {
-                    voice_name: "Aoede"
-                  }
-                }
-              }
-            },
-            system_instruction: {
-              parts: [{
-                text: "You are a number recognition system. Your ONLY job is to listen for numbers spoken in audio and return ONLY the digits. Expected inputs: 'ten' → '10', 'twenty-one' → '21', 'fifteen' → '15', 'zero' → '0', 'one hundred' → '100'. IGNORE all non-number words. If you hear any word that isn't clearly a number (like 'pan', 'eat', 'cat'), respond with 'INVALID'. Only return pure digits 0-9 or 'INVALID'."
-              }]
-            }
-          }
-        };
-        
-        this.websocket?.send(JSON.stringify(setupMessage));
+      let audioChunks: Blob[] = [];
+      let isRecording = false;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
       };
 
-      this.websocket.onmessage = (event) => {
+      recorder.onstop = async () => {
+        if (audioChunks.length === 0) return;
+
         try {
-          const response = JSON.parse(event.data);
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioChunks = []; // Reset for next recording
           
-          if (response.candidates && response.candidates[0]?.content?.parts) {
-            const textPart = response.candidates[0].content.parts.find((part: any) => part.text);
-            if (textPart && textPart.text.trim()) {
-              console.log('Gemini raw response:', textPart.text.trim());
-              const extractedNumber = this.extractNumberFromGeminiResponse(textPart.text.trim());
-              if (extractedNumber && onResult) {
-                console.log('Valid number extracted:', extractedNumber);
-                onResult(extractedNumber);
-              }
+          console.log('Sending audio to Gemini for transcription...');
+          const transcription = await this.transcribeWithGemini(audioBlob);
+          
+          if (transcription && onResult) {
+            console.log('Gemini transcription result:', transcription);
+            const extractedNumber = this.extractNumberFromGeminiResponse(transcription);
+            if (extractedNumber) {
+              console.log('Valid number extracted:', extractedNumber);
+              onResult(extractedNumber);
             }
           }
         } catch (error) {
-          console.error('Error parsing Gemini response:', error);
+          console.error('Error processing audio with Gemini:', error);
+        }
+
+        // Continue listening if still enabled - minimal gap for smooth arcade experience
+        if (this.isListening) {
+          setTimeout(() => this.startNextRecording(recorder), 50);
         }
       };
 
-      this.websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        console.log('WebSocket error - will fallback to Web Speech API');
-        if (onError) onError('Gemini connection failed, using Web Speech API fallback');
-        this.isListening = false;
-      };
-
-      this.websocket.onclose = (event) => {
-        console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
-        console.log('Falling back to Web Speech API due to connection loss');
-        this.isListening = false;
-        
-        // Auto-fallback to Web Speech API
-        if (this.onResultCallback) {
-          setTimeout(() => {
-            console.log('Auto-switching to Web Speech API fallback');
-            this.startWebSpeechFallback();
-          }, 1000);
-        }
-      };
-
-      // Process audio data
-      this.processor.onaudioprocess = (event) => {
-        if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
-          const inputBuffer = event.inputBuffer.getChannelData(0);
-          
-          // Convert to 16-bit PCM
-          const pcmData = this.convertToPCM16(inputBuffer);
-          
-          // Send audio data to Gemini
-          const audioMessage = {
-            realtime_input: {
-              media_chunks: [{
-                mime_type: "audio/pcm;rate=16000",
-                data: this.arrayBufferToBase64(pcmData)
-              }]
-            }
-          };
-          
-          this.websocket.send(JSON.stringify(audioMessage));
-        }
-      };
-
-      source.connect(this.processor);
-      this.processor.connect(this.audioContext.destination);
-
+      // Start continuous recording in 1-second chunks for arcade game balance
+      this.isListening = true;
+      this.startNextRecording(recorder);
+      
       return true;
     } catch (error) {
-      console.error('Error starting Gemini audio capture:', error);
+      console.error('Error starting Gemini file upload:', error);
       if (onError) onError(error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
+  }
+
+  private startNextRecording(recorder: MediaRecorder) {
+    if (!this.isListening) return;
+    
+    try {
+      recorder.start();
+      // Record for 1 second then process for good balance of speed and accuracy
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          recorder.stop();
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+    }
+  }
+
+  private async transcribeWithGemini(audioBlob: Blob): Promise<string | null> {
+    try {
+      // Convert blob to base64
+      const base64Audio = await this.blobToBase64(audioBlob);
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.config.geminiApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Listen to this audio and extract any numbers spoken. If you hear 'twenty-one' respond with '21'. If you hear 'fifteen' respond with '15'. Only respond with the digits, nothing else. If no clear number is spoken, respond with 'NONE'." },
+              {
+                inline_data: {
+                  mime_type: 'audio/webm',
+                  data: base64Audio.split(',')[1] // Remove data URL prefix
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 10
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      return text?.trim() || null;
+    } catch (error) {
+      console.error('Gemini transcription error:', error);
+      return null;
+    }
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   private convertToPCM16(float32Array: Float32Array): ArrayBuffer {
@@ -374,8 +386,8 @@ class VoiceInputManager {
     this.onErrorCallback = onError || null;
     
     if (this.config.useGemini && this.config.geminiApiKey) {
-      console.log('Attempting Gemini Live API for voice input');
-      const geminiResult = this.startGeminiAudioCapture(onResult, onError);
+      console.log('Attempting Gemini file upload for voice input');
+      const geminiResult = this.startGeminiFileUpload(onResult, onError);
       
       // If Gemini fails to start, fallback immediately
       if (!geminiResult) {
@@ -413,8 +425,10 @@ class VoiceInputManager {
   }
 
   public stopListening() {
+    this.isListening = false;
+    
     if (this.config.useGemini) {
-      // Stop Gemini audio capture
+      // Stop Gemini audio capture (both WebSocket and file upload)
       if (this.websocket) {
         this.websocket.close();
         this.websocket = null;
@@ -434,7 +448,6 @@ class VoiceInputManager {
       }
     }
     
-    this.isListening = false;
     this.onResultCallback = null;
     this.onErrorCallback = null;
   }
