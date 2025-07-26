@@ -63,9 +63,8 @@ class VoiceInputManager {
     this.recognition.interimResults = this.config.interimResults;
     this.recognition.maxAlternatives = this.config.maxAlternatives;
     
-    // Optimize for arcade game performance
-    (this.recognition as any).serviceURI = 'https://www.google.com/speech-api/v2/recognize';
-    (this.recognition as any).grammars = null; // Disable grammar restrictions for faster response
+    // Optimize for arcade game performance - remove problematic settings
+    // Note: grammars property causes issues in production, keep default settings
   }
 
   private setupEventListeners() {
