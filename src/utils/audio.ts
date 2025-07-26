@@ -29,7 +29,7 @@ const initAudioContext = () => {
 };
 
 // Synthesized sound effects
-export const playSound = (type: 'destroy' | 'loseLife' | 'waveComplete') => {
+export const playSound = (type: 'destroy' | 'destroyAggressive' | 'destroyBoss' | 'laserShoot' | 'powerUpCollect' | 'loseLife' | 'waveComplete') => {
   const ctx = initAudioContext();
   if (!ctx) return;
 
@@ -42,12 +42,66 @@ export const playSound = (type: 'destroy' | 'loseLife' | 'waveComplete') => {
 
   switch (type) {
     case 'destroy':
-      // Quick zap sound
+      // Quick zap sound for friendly/neutral problems
       oscillator.frequency.setValueAtTime(800, currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(200, currentTime + 0.1);
       gainNode.gain.setValueAtTime(0.3, currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.15);
       oscillator.type = 'square';
+      break;
+
+    case 'destroyAggressive':
+      // Harsh, aggressive destruction sound
+      oscillator.frequency.setValueAtTime(1200, currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(150, currentTime + 0.12);
+      gainNode.gain.setValueAtTime(0.4, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.18);
+      oscillator.type = 'sawtooth';
+      break;
+
+    case 'destroyBoss':
+      // Epic boss destruction with complex harmonics
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      
+      // Main frequency
+      oscillator.frequency.setValueAtTime(1500, currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(100, currentTime + 0.25);
+      gainNode.gain.setValueAtTime(0.5, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.3);
+      oscillator.type = 'square';
+      
+      // Harmonic frequency
+      osc2.frequency.setValueAtTime(750, currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(50, currentTime + 0.25);
+      gain2.gain.setValueAtTime(0.3, currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.3);
+      osc2.type = 'triangle';
+      
+      osc2.start(currentTime);
+      osc2.stop(currentTime + 0.3);
+      break;
+
+    case 'laserShoot':
+      // Sci-fi laser shoot sound
+      oscillator.frequency.setValueAtTime(1000, currentTime);
+      oscillator.frequency.linearRampToValueAtTime(1500, currentTime + 0.05);
+      oscillator.frequency.exponentialRampToValueAtTime(800, currentTime + 0.08);
+      gainNode.gain.setValueAtTime(0.2, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.1);
+      oscillator.type = 'sine';
+      break;
+
+    case 'powerUpCollect':
+      // Magical power-up collection sound
+      oscillator.frequency.setValueAtTime(600, currentTime);
+      oscillator.frequency.linearRampToValueAtTime(1200, currentTime + 0.1);
+      oscillator.frequency.linearRampToValueAtTime(900, currentTime + 0.2);
+      gainNode.gain.setValueAtTime(0.25, currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.25);
+      oscillator.type = 'triangle';
       break;
 
     case 'loseLife':
@@ -73,7 +127,20 @@ export const playSound = (type: 'destroy' | 'loseLife' | 'waveComplete') => {
   }
 
   oscillator.start(currentTime);
-  oscillator.stop(currentTime + (type === 'waveComplete' ? 0.8 : type === 'loseLife' ? 0.6 : 0.15));
+  
+  // Set stop time based on sound type
+  let stopTime = 0.15; // default
+  switch (type) {
+    case 'waveComplete': stopTime = 0.8; break;
+    case 'loseLife': stopTime = 0.6; break;
+    case 'destroyBoss': stopTime = 0.3; break;
+    case 'destroyAggressive': stopTime = 0.18; break;
+    case 'powerUpCollect': stopTime = 0.25; break;
+    case 'laserShoot': stopTime = 0.1; break;
+    default: stopTime = 0.15; break;
+  }
+  
+  oscillator.stop(currentTime + stopTime);
 };
 
 // Dynamic music system based on game state

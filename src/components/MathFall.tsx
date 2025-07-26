@@ -177,18 +177,29 @@ const MathFall: React.FC = () => {
   }, []);
 
   // Vibration utility function
-  const triggerVibration = useCallback((intensity: 'light' | 'medium' | 'heavy' = 'medium') => {
-    if ('vibrate' in navigator) {
-      switch (intensity) {
-        case 'light':
-          navigator.vibrate(50);
-          break;
-        case 'medium':
-          navigator.vibrate(100);
-          break;
-        case 'heavy':
-          navigator.vibrate([100, 50, 100]);
-          break;
+  const triggerVibration = useCallback((intensity: 'light' | 'medium' | 'heavy' | 'powerup' | 'streak' = 'medium') => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      try {
+        switch (intensity) {
+          case 'light':
+            navigator.vibrate(40); // Quick tap for friendly problems
+            break;
+          case 'medium':
+            navigator.vibrate(80); // Medium buzz for normal hits
+            break;
+          case 'heavy':
+            navigator.vibrate([120, 30, 80, 30, 120]); // Complex pattern for boss problems
+            break;
+          case 'powerup':
+            navigator.vibrate([50, 20, 50]); // Double tap for power-ups
+            break;
+          case 'streak':
+            navigator.vibrate([30, 20, 30, 20, 30]); // Rapid fire for streaks
+            break;
+        }
+      } catch (error) {
+        // Silently fail if vibration is not supported or fails
+        console.warn('Vibration not supported or failed:', error);
       }
     }
   }, []);
@@ -246,8 +257,10 @@ const MathFall: React.FC = () => {
       
       if (targetProblem) {
         if (checkAnswer(targetProblem, newInput)) {
-          // Correct answer - destroy problem
-          playSound('destroy');
+          // Correct answer - destroy problem with personality-based sound
+          const soundType = targetProblem.personality === 'boss' ? 'destroyBoss' : 
+                           targetProblem.personality === 'aggressive' ? 'destroyAggressive' : 'destroy';
+          playSound(soundType);
           
           // Trigger vibration based on problem personality
           const vibrationIntensity = targetProblem.personality === 'boss' ? 'heavy' : 
@@ -300,7 +313,14 @@ const MathFall: React.FC = () => {
             checkWaveCompletion();
           }, 100);
         } else {
-          // Partial correct input
+          // Partial correct input - play laser sound when first targeting
+          const wasTargeting = currentState.targetProblem !== null;
+          const nowTargeting = targetProblem !== null;
+          
+          if (!wasTargeting && nowTargeting) {
+            playSound('laserShoot'); // Play laser sound when first locking onto target
+          }
+          
           updateGameState(state => ({
             ...state,
             currentInput: newInput,
@@ -324,6 +344,14 @@ const MathFall: React.FC = () => {
     } else if (key === 'Backspace') {
       const newInput = currentState.currentInput.slice(0, -1);
       const targetProblem = findTargetProblem(newInput);
+      
+      // Play laser sound when first targeting after backspace
+      const wasTargeting = currentState.targetProblem !== null;
+      const nowTargeting = targetProblem !== null;
+      
+      if (!wasTargeting && nowTargeting) {
+        playSound('laserShoot');
+      }
       
       updateGameState(state => ({
         ...state,
@@ -468,8 +496,8 @@ const MathFall: React.FC = () => {
         
         // Play sound and vibration for collected power-ups
         if (collectedAny) {
-          playSound('destroy');
-          triggerVibration('light'); // Light vibration for power-up collection
+          playSound('powerUpCollect');
+          triggerVibration('powerup'); // Special power-up vibration pattern
         }
       }
 
