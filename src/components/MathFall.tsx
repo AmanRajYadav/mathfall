@@ -303,7 +303,7 @@ const MathFall: React.FC = () => {
           updateGameState(state => ({
             ...state,
             problems: state.problems.filter(p => p.id !== targetProblem.id),
-            score: state.score + scoreGain,
+            score: (state.score || 0) + (scoreGain || 10),
             currentInput: '',
             targetProblem: null,
             problemsHandled: newProblemsHandled,
@@ -402,7 +402,7 @@ const MathFall: React.FC = () => {
         
         updateGameState((state: GameState) => ({
           ...state,
-          score: state.score + targetProblem.points,
+          score: (state.score || 0) + (targetProblem.points || 10),
           problems: state.problems.filter(p => p.id !== targetProblem.id),
           currentInput: '',
           targetProblem: null,

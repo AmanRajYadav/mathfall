@@ -20,6 +20,12 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
     geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY
   });
 
+  // Debug API key loading
+  React.useEffect(() => {
+    console.log('VITE_GEMINI_API_KEY loaded:', !!import.meta.env.VITE_GEMINI_API_KEY);
+    console.log('Voice manager using Gemini:', voiceManager.isSupported());
+  }, []);
+
   const toggleVoiceInput = async () => {
     if (!isVoiceEnabled) {
       // Enable voice input

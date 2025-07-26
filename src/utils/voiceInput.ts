@@ -353,9 +353,18 @@ class VoiceInputManager {
   }
 
   public startListening(onResult: (text: string) => void, onError?: (error: string) => void) {
+    console.log('Starting voice input with config:', { 
+      useGemini: this.config.useGemini, 
+      hasApiKey: !!this.config.geminiApiKey,
+      apiKeyLength: this.config.geminiApiKey?.length 
+    });
+    
     if (this.config.useGemini && this.config.geminiApiKey) {
+      console.log('Using Gemini Live API for voice input');
       return this.startGeminiAudioCapture(onResult, onError);
     }
+
+    console.log('Falling back to Web Speech API');
 
     if (!this.recognition) {
       const error = 'Speech recognition not available';
