@@ -16,7 +16,7 @@ const GameHUD: React.FC<GameHUDProps> = ({ gameState, onVoiceInput }) => {
   const [isListening, setIsListening] = useState(false);
   
   const voiceManager = getVoiceInputManager({
-    useGemini: true,
+    useGemini: false, // Temporarily disable Gemini until WebSocket issue is resolved
     geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyD5uG6TMkUY0Q4XRtAdOFQq_05R5aaFsck'
   });
 

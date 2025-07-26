@@ -264,13 +264,23 @@ class VoiceInputManager {
 
       this.websocket.onerror = (error) => {
         console.error('WebSocket error:', error);
-        if (onError) onError('Connection error');
+        console.log('WebSocket error - will fallback to Web Speech API');
+        if (onError) onError('Gemini connection failed, using Web Speech API fallback');
         this.isListening = false;
       };
 
-      this.websocket.onclose = () => {
-        console.log('WebSocket connection closed');
+      this.websocket.onclose = (event) => {
+        console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
+        console.log('Falling back to Web Speech API due to connection loss');
         this.isListening = false;
+        
+        // Auto-fallback to Web Speech API
+        if (this.onResultCallback) {
+          setTimeout(() => {
+            console.log('Auto-switching to Web Speech API fallback');
+            this.startWebSpeechFallback();
+          }, 1000);
+        }
       };
 
       // Process audio data
@@ -359,17 +369,31 @@ class VoiceInputManager {
       apiKeyLength: this.config.geminiApiKey?.length 
     });
     
+    // Store callbacks for potential fallback
+    this.onResultCallback = onResult;
+    this.onErrorCallback = onError || null;
+    
     if (this.config.useGemini && this.config.geminiApiKey) {
-      console.log('Using Gemini Live API for voice input');
-      return this.startGeminiAudioCapture(onResult, onError);
+      console.log('Attempting Gemini Live API for voice input');
+      const geminiResult = this.startGeminiAudioCapture(onResult, onError);
+      
+      // If Gemini fails to start, fallback immediately
+      if (!geminiResult) {
+        console.log('Gemini failed to start, using Web Speech API fallback');
+        return this.startWebSpeechFallback();
+      }
+      return geminiResult;
     }
 
-    console.log('Falling back to Web Speech API');
+    console.log('Using Web Speech API directly');
+    return this.startWebSpeechFallback();
+  }
 
+  private startWebSpeechFallback() {
     if (!this.recognition) {
       const error = 'Speech recognition not available';
       console.error(error);
-      if (onError) onError(error);
+      if (this.onErrorCallback) this.onErrorCallback(error);
       return false;
     }
 
@@ -378,15 +402,12 @@ class VoiceInputManager {
       return false;
     }
 
-    this.onResultCallback = onResult;
-    this.onErrorCallback = onError || null;
-
     try {
       this.recognition.start();
       return true;
     } catch (error) {
       console.error('Error starting speech recognition:', error);
-      if (onError) onError(error instanceof Error ? error.message : 'Unknown error');
+      if (this.onErrorCallback) this.onErrorCallback(error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
